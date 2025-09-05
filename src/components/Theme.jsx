@@ -179,29 +179,4 @@ const splitMateLight = createTheme({
   components: componentsOverrides('light'),
 });
 
-const splitMateDark = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: { main: brand.primary, contrastText: '#0A0F14' },
-    secondary: { main: brand.secondary, contrastText: '#FFFFFF' },
-    success: { main: brand.success },
-    warning: { main: brand.accent, contrastText: '#0C0C0C' },
-    info: { main: brand.info },
-    error: { main: brand.error },
-    background: {
-      default: '#0B1220',
-      paper: '#0F172A',
-    },
-    text: {
-      primary: '#E5E7EB',
-      secondary: '#A5B4CF',
-    },
-    divider: '#1F2937',
-  },
-  shape: baseShape,
-  typography: commonTypography,
-  components: componentsOverrides('dark'),
-});
-
 export const ThemeLight = responsiveFontSizes(splitMateLight);
-export const ThemeDark = responsiveFontSizes(splitMateDark);

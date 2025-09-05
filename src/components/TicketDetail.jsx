@@ -66,11 +66,7 @@ export default function TicketDetail({
   };
 
   return (
-    <Box sx={{ flexGrow: 1, p: { xs: 2, md: 3 } }}>
-      <Grid container spacing={3} alignItems="stretch">
-        {/* Panel izquierdo: Información */}
-        <Grid item xs={12} md={6}>
-          <Card variant="outlined" sx={{ height: "100%" }}>
+          <Card variant="outlined">
             <CardHeader
               avatar={<ReceiptLongIcon />}
               title={
@@ -108,112 +104,204 @@ export default function TicketDetail({
             <Divider />
 
             <CardContent>
-              {/* Resumen de totales */}
-              <Stack spacing={1.5}>
-                <Stack direction="row" justifyContent="space-between">
-                  <Typography color="text.secondary">Subtotal</Typography>
-                  <Typography>{subtotal != null ? fmtMoney(subtotal, currency) : "—"}</Typography>
-                </Stack>
-                <Stack direction="row" justifyContent="space-between">
-                  <Typography color="text.secondary">Impuestos</Typography>
-                  <Typography>{taxes != null ? fmtMoney(taxes, currency) : "—"}</Typography>
-                </Stack>
-                <Stack direction="row" justifyContent="space-between">
-                  <Typography color="text.secondary">Propina</Typography>
-                  <Typography>{tip != null ? fmtMoney(tip, currency) : "—"}</Typography>
-                </Stack>
-
-                <Divider />
-
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography variant="subtitle1" fontWeight={700}>
-                    Total
+              {/* Papel térmico del ticket */}
+              <Box
+                sx={{
+                  position: "relative",
+                  mx: "auto",
+                  maxWidth: 520,
+                  bgcolor: "#fff",
+                  color: "text.primary",
+                  borderRadius: 1,
+                  boxShadow: "0 1px 0 rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.03)",
+                  p: 2,
+                  fontFamily:
+                    'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                  letterSpacing: ".01em",
+                  // Dientes tipo “perforación”
+                  "&::before, &::after": {
+                    content: '""',
+                    position: "absolute",
+                    left: 0,
+                    right: 0,
+                    height: 10,
+                    background:
+                      "radial-gradient(circle at 10px 10px, transparent 10px, #fff 10px) top left / 20px 20px repeat-x",
+                  },
+                  "&::before": { top: -10 },
+                  "&::after": {
+                    bottom: -10,
+                    transform: "scaleY(-1)",
+                  },
+                }}
+              >
+                {/* Encabezado */}
+                <Box sx={{ textAlign: "center", mb: 1 }}>
+                  <Typography
+                    sx={{ fontWeight: 800, letterSpacing: ".08em" }}
+                    variant="subtitle1"
+                  >
+                    {(place || "COMERCIO").toUpperCase()}
                   </Typography>
-                  <Typography variant="subtitle1" fontWeight={800}>
-                    {total != null ? fmtMoney(total, currency) : "—"}
+                  <Typography variant="caption" color="text.secondary">
+                    {category || "Ticket"} · {uploadedAt ? fmtDate(uploadedAt) : "—"}
                   </Typography>
-                </Stack>
+                </Box>
 
-                {totalWithTip != null && totalWithTip > total && (
-                  <Stack direction="row" justifyContent="space-between" alignItems="center">
-                    <Typography color="text.secondary">Total con propina</Typography>
-                    <Typography fontWeight={700}>{fmtMoney(totalWithTip, currency)}</Typography>
-                  </Stack>
-                )}
-              </Stack>
+                {/* Divisor punteado */}
+                <Box
+                  sx={{
+                    my: 1,
+                    height: 1,
+                    background:
+                      "repeating-linear-gradient(90deg, rgba(0,0,0,.35), rgba(0,0,0,.35) 6px, transparent 6px, transparent 12px)",
+                  }}
+                />
 
-              {/* Sección extra: participantes & método de pago */}
-              <Divider sx={{ my: 2 }} />
-
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                <Stack flex={1} spacing={1}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Participantes
-                  </Typography>
-                  <Stack direction="row" spacing={1} flexWrap="wrap">
-                    {participants?.length
-                      ? participants.map((p) => (
-                          <Chip key={p.id || p.name} size="small" icon={<GroupsIcon />} label={p.name} />
-                        ))
-                      : <Typography variant="body2">—</Typography>}
-                  </Stack>
-                </Stack>
-
-                <Stack flex={1} spacing={1}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Pago & OCR
-                  </Typography>
-                  <Stack direction="row" spacing={1} flexWrap="wrap">
-                    {paymentMethod && <Chip size="small" label={paymentMethod} variant="outlined" />}
-                    {typeof ocrConfidence === "number" && (
-                      <Chip
-                        size="small"
-                        label={`Confianza OCR ${(ocrConfidence * 100).toFixed(0)}%`}
-                        variant="outlined"
-                      />
-                    )}
-                  </Stack>
-                </Stack>
-              </Stack>
-
-              {/* Ítems detectados (resumen) */}
-              {items?.length > 0 && (
-                <>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                    Ítems detectados ({items.length})
-                  </Typography>
-                  <List dense disablePadding>
-                    {items.slice(0, 5).map((it, idx) => (
-                      <ListItem key={idx} disableGutters>
-                        <ListItemText
-                          primary={it.name || "—"}
-                          secondary={it.qty != null ? `x${it.qty}` : undefined}
-                        />
-                        <Typography variant="body2" fontWeight={600}>
+                {/* Lista de ítems estilo ticket */}
+                {items?.length > 0 ? (
+                  <Box sx={{ display: "grid", rowGap: 0.5 }}>
+                    {items.map((it, idx) => (
+                      <Box
+                        key={idx}
+                        sx={{
+                          display: "grid",
+                          gridTemplateColumns: "1fr auto auto",
+                          columnGap: 1,
+                          alignItems: "baseline",
+                        }}
+                      >
+                        <Typography variant="body2" noWrap title={it.name}>
+                          {it.name || "—"}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          sx={{ textAlign: "right", minWidth: 46 }}
+                          color="text.secondary"
+                        >
+                          {it.qty != null ? `x${it.qty}` : ""}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          sx={{ textAlign: "right", minWidth: 80, fontWeight: 600 }}
+                        >
                           {it.total != null ? fmtMoney(it.total, currency) : "—"}
                         </Typography>
-                      </ListItem>
+                      </Box>
                     ))}
-                  </List>
-                  {items.length > 5 && (
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                      + {items.length - 5} más en el detalle…
-                    </Typography>
-                  )}
-                </>
-              )}
-
-              {/* Notas */}
-              {notes && (
-                <>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                    Notas
+                  </Box>
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    (Sin ítems detectados)
                   </Typography>
-                  <Typography variant="body2">{notes}</Typography>
-                </>
-              )}
+                )}
+
+                {/* Divisor punteado */}
+                <Box
+                  sx={{
+                    my: 1,
+                    height: 1,
+                    background:
+                      "repeating-linear-gradient(90deg, rgba(0,0,0,.35), rgba(0,0,0,.35) 6px, transparent 6px, transparent 12px)",
+                  }}
+                />
+
+                {/* Subtotales / impuestos / propina */}
+                <Box sx={{ display: "grid", rowGap: 0.5 }}>
+                  <Row label="SUBTOTAL" value={subtotal != null ? fmtMoney(subtotal, currency) : "—"} />
+                  <Row label="IMPUESTOS" value={taxes != null ? fmtMoney(taxes, currency) : "—"} />
+                  <Row label="PROPINA" value={tip != null ? fmtMoney(tip, currency) : "—"} />
+                </Box>
+
+                {/* Total y total con propina */}
+                <Box
+                  sx={{
+                    my: 1,
+                    height: 1,
+                    background:
+                      "repeating-linear-gradient(90deg, rgba(0,0,0,.35), rgba(0,0,0,.35) 6px, transparent 6px, transparent 12px)",
+                  }}
+                />
+                <Row
+                  label="TOTAL"
+                  value={total != null ? fmtMoney(total, currency) : "—"}
+                  strong
+                />
+                {totalWithTip != null && totalWithTip > total && (
+                  <Row
+                    label="TOTAL C/ PROP."
+                    value={fmtMoney(totalWithTip, currency)}
+                    strong
+                  />
+                )}
+
+                {/* Pago, participantes, OCR */}
+                <Box sx={{ mt: 1.5 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    PAGO: {paymentMethod || "—"}
+                  </Typography>
+                  <br />
+                  <Typography variant="caption" color="text.secondary">
+                    PARTICIPANTES:{" "}
+                    {participants?.length
+                      ? participants.map((p) => p.name).join(", ")
+                      : "—"}
+                  </Typography>
+                  {typeof ocrConfidence === "number" && (
+                    <>
+                      <br />
+                      <Typography variant="caption" color="text.secondary">
+                        CONF. OCR: {(ocrConfidence * 100).toFixed(0)}%
+                      </Typography>
+                    </>
+                  )}
+                </Box>
+
+                {/* Notas (opcional) */}
+                {notes && (
+                  <>
+                    <Box
+                      sx={{
+                        my: 1,
+                        height: 1,
+                        background:
+                          "repeating-linear-gradient(90deg, rgba(0,0,0,.35), rgba(0,0,0,.35) 6px, transparent 6px, transparent 12px)",
+                      }}
+                    />
+                    <Typography variant="caption" sx={{ whiteSpace: "pre-wrap" }}>
+                      NOTAS: {notes}
+                    </Typography>
+                  </>
+                )}
+
+                {/* Barcode simulado */}
+                <Box
+                  sx={{
+                    mt: 2,
+                    height: 44,
+                    background:
+                      "repeating-linear-gradient(90deg, #111 0 2px, transparent 2px 4px)",
+                    opacity: 0.6,
+                  }}
+                />
+                <Typography
+                  variant="caption"
+                  sx={{ display: "block", textAlign: "center", mt: 0.5, letterSpacing: "0.25em" }}
+                >
+                  7  3  9  4  1  2  8  5
+                </Typography>
+
+                {/* Footer mini (RFC ficticio / dirección) */}
+                <Box sx={{ textAlign: "center", mt: 1 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    RFC: XAXX010101000
+                  </Typography>
+                  <br />
+                  <Typography variant="caption" color="text.secondary">
+                    Gracias por su compra
+                  </Typography>
+                </Box>
+              </Box>
             </CardContent>
 
             <CardActions sx={{ p: 2, pt: 0, justifyContent: "space-between" }}>
@@ -230,55 +318,32 @@ export default function TicketDetail({
               </Button>
             </CardActions>
           </Card>
-        </Grid>
+  );
+}
 
-        {/* Panel derecho: Imagen del ticket */}
-        <Grid item xs={12} md={6}>
-          <Card
-            variant="outlined"
-            sx={{
-              height: "100%",
-              position: { md: "sticky" },
-              top: { md: 24 },
-              overflow: "hidden",
-            }}
-          >
-            <CardHeader
-              title="Imagen del ticket"
-              subheader="Vista de alta calidad"
-              action={
-                picture ? (
-                  <Tooltip title="Descargar imagen">
-                    <IconButton component="a" href={picture} download target="_blank" rel="noopener noreferrer">
-                      <DownloadIcon />
-                    </IconButton>
-                  </Tooltip>
-                ) : null
-              }
-            />
-            <Divider />
-            {picture ? (
-              <CardMedia
-                component="img"
-                image={picture}
-                alt={`Ticket - ${place || "comercio"}`}
-                sx={{ maxHeight: { xs: 420, md: "calc(100vh - 240px)" }, objectFit: "contain", bgcolor: "background.default" }}
-              />
-            ) : (
-              <Box
-                sx={{
-                  height: { xs: 320, md: "calc(100vh - 240px)" },
-                  display: "grid",
-                  placeItems: "center",
-                  bgcolor: "background.default",
-                }}
-              >
-                <Typography color="text.secondary">Sin imagen</Typography>
-              </Box>
-            )}
-          </Card>
-        </Grid>
-      </Grid>
+/* Sub-componente para filas de totales alineadas tipo ticket */
+function Row({ label, value, strong }) {
+  return (
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: "1fr auto",
+        alignItems: "baseline",
+      }}
+    >
+      <Typography
+        variant="body2"
+        sx={{ letterSpacing: ".06em" }}
+        color={strong ? "inherit" : "text.secondary"}
+      >
+        {label}
+      </Typography>
+      <Typography
+        variant="body2"
+        sx={{ textAlign: "right", fontWeight: strong ? 800 : 600 }}
+      >
+        {value}
+      </Typography>
     </Box>
   );
 }

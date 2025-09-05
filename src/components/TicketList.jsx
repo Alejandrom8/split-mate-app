@@ -1,61 +1,37 @@
+// components/TicketsList.jsx
 import * as React from "react";
-import { Grid, Container } from "@mui/material";
-import TicketCard from "./TicketCard"; // importa tu componente
-import { useRouter } from "next/router";
+import { Grid, Box, Button } from "@mui/material";
+import TicketCard from "./TicketCard";
 
-export default function TicketsList() {
-
-  const router = useRouter();
-  // Datos de ejemplo (mock)
-  const mockTickets = [
-    {
-      id: 1,
-      picture: "https://images.unsplash.com/photo-1556745757-8d76bdb6984b?w=800",
-      place: "Starbucks Reforma",
-      uploadedAt: "2025-08-20T14:23:00Z",
-      total: 185.5,
-      totalWithTip: 200,
-      status: "ready",
-      itemsCount: 4,
-      participantsCount: 2,
-    },
-    {
-      id: 2,
-      picture: "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?w=800",
-      place: "La Parrilla Mexicana",
-      uploadedAt: "2025-08-22T19:40:00Z",
-      total: 980,
-      totalWithTip: 1100,
-      status: "processing",
-      itemsCount: 12,
-      participantsCount: 5,
-    },
-    {
-      id: 3,
-      picture: "",
-      place: "Uber Eats",
-      uploadedAt: "2025-08-25T21:10:00Z",
-      total: 320,
-      status: "pending",
-      itemsCount: 6,
-      participantsCount: 3,
-    },
-  ];
-
-  const handleClick = (ticket) => {
-    router.push('/ticket/1');
-  };
-
+export default function TicketsList({
+  tickets = [],
+  selectedId,
+  onSelectTicket,
+  onEditTicket,
+  onShareTicket,
+  onSplitTicket,
+  onLoadMore,
+}) {
   return (
-    <Grid container spacing={3}>
-    {mockTickets.map((ticket) => (
-        <Grid item xs={12} sm={6} md={4} key={ticket.id}>
-        <TicketCard
-            {...ticket}
-            onClick={() => handleClick(ticket)}
-        />
-        </Grid>
-    ))}
-    </Grid>
+    <Box width='100%'>
+      <Grid container spacing={3} display='flex' flexWrap={'wrap'}>
+        {tickets.map((t) => (
+          <Grid item xs={6} key={t.id}>
+              <TicketCard
+                picture={t.picture}
+                place={t.place}
+                uploadedAt={t.uploadedAt}
+                total={t.total}
+                totalWithTip={t.totalWithTip}
+                currency={t.currency}
+                status={t.status}
+                itemsCount={t.itemsCount}
+                participantsCount={t.participantsCount}
+                onClick={() => onSelectTicket?.(t)}
+              />
+          </Grid>
+        ))}
+      </Grid>
+    </Box>
   );
 }
