@@ -9,7 +9,7 @@ import {
   Typography,
   Chip,
   Divider,
-  Skeleton,
+  Skeleton, CardActions,
 } from "@mui/material";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import PlaceIcon from "@mui/icons-material/Place";

@@ -1,9 +1,11 @@
-import { ThemeProvider, CssBaseline } from '@mui/material';
+import {ThemeProvider, CssBaseline, Toolbar} from '@mui/material';
 import { ThemeLight } from '../components/Theme';
 import {SnackbarProvider} from "notistack";
 import {CacheProvider} from "@emotion/react";
 import Head from "next/head";
 import createEmotionCache from '../createEmotionCache';
+import SplitMateAppBar from "@/components/App/SplitMateAppBar";
+import * as React from "react";
 
 const clientSideEmotionCache = createEmotionCache();
 
@@ -23,6 +25,12 @@ export default function App(props) {
             horizontal: "right",
           }}
         >
+          <SplitMateAppBar
+            user={{ name: "Alex", avatarUrl: "https://i.pravatar.cc/200?img=68" }}
+            onProfile={() => console.log("perfil")}
+            onSettings={() => console.log("configuración")}
+            onLogout={() => console.log("logout")}
+          />
           <Component {...pageProps} />
         </SnackbarProvider>
       </ThemeProvider>

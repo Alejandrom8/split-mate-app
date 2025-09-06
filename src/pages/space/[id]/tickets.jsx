@@ -215,10 +215,6 @@ export default function Home() {
       </Head>
 
       <Container>
-        <Box py={4}>
-          <Typography variant="h3">Split Mate</Typography>
-        </Box>
-
         <Grid container spacing={2}>
           <Grid item size={6}>
             <Grid container spacing={2}>

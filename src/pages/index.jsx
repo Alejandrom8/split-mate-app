@@ -10,7 +10,7 @@ import {
   Stack,
   Avatar,
   AvatarGroup,
-  CardActionArea, Toolbar, TextField
+  CardActionArea, Toolbar, TextField, Button
 } from "@mui/material";
 import TicketsList from "@/components/TicketList";
 import TicketDetail from "@/components/TicketDetail"; // usa tu componente de detalle
@@ -18,6 +18,8 @@ import TicketCard from "@/components/TicketCard";
 import StickyBox from "react-sticky-box";
 import SpaceCard from "@/components/Spaces/SpaceCard";
 import SearchIcon from '@mui/icons-material/Search';
+import CreateSpaceSpeedDial from "../components/Spaces/CreateSpaceDial";
+import SplitMateAppBar from "@/components/App/SplitMateAppBar";
 
 const mockSpaces = [
   {
@@ -62,6 +64,7 @@ const mockSpaces = [
   }
 ];
 
+
 export default function Home() {
 
   return (
@@ -74,17 +77,13 @@ export default function Home() {
       </Head>
 
       <Container>
-        <Box py={4}>
-          <Typography variant="h3">Split Mate</Typography>
-        </Box>
-
-        <Box py={3}>
+        <Box pt={4}>
           <Typography variant="h5">Tus espacios</Typography>
         </Box>
 
         <Box sx={{ minHeight: 600 }}>
           <Box sx={{ my: 2 }}>
-            <Toolbar disableGutters>
+            <Toolbar disableGutters sx={{ display: 'flex' }}>
               <TextField
                 size="small"
                 sx={{ width: 400 }}
@@ -97,16 +96,32 @@ export default function Home() {
               />
             </Toolbar>
           </Box>
-          <Grid container spacing={4}>
-            {
-              mockSpaces.map((item, index) => (
-                <Grid item size={4}>
-                 <SpaceCard key={index} item={item} />
-                </Grid>
-              ))
-            }
-          </Grid>
+          {
+            !mockSpaces?.length && (
+              <Box sx={{ width: '100%', height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img src={'/empty-spaces.svg'} width={'300px'} />
+              </Box>
+            )
+          }
+          {
+            mockSpaces?.length > 0 && (
+              <Grid container spacing={{ xs: 2, md: 4 }}>
+                {
+                  mockSpaces.map((item, index) => (
+                    <Grid item size={{ xs: 12, md: 4 }}>
+                      <SpaceCard key={index} item={item} />
+                    </Grid>
+                  ))
+                }
+              </Grid>
+            )
+          }
         </Box>
+
+        <CreateSpaceSpeedDial onCreate={() => {
+          // aquí abres modal / navegas / llamas API
+          console.log("crear espacio");
+        }} />
       </Container>
     </>
   );
