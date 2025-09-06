@@ -45,9 +45,9 @@ function suggestPayments(balances) {
 // ---------- Mock data ----------
 const mockMembers = [
   { id: "u1", name: "Alex", avatar: "https://i.pravatar.cc/64?img=68" },
-  { id: "u2", name: "Maggie", avatar: "https://i.pravatar.cc/64?img=5" },
+  { id: "u2", name: "Maggy", avatar: "https://i.pravatar.cc/64?img=5" },
   { id: "u3", name: "Roni", avatar: "https://i.pravatar.cc/64?img=12" },
-  { id: "u4", name: "Luis", avatar: "https://i.pravatar.cc/64?img=23" },
+  { id: "u4", name: "Lis", avatar: "https://i.pravatar.cc/64?img=23" },
 ];
 
 const mockTickets = [
@@ -58,9 +58,9 @@ const mockTickets = [
 
 const mockBalances = [
   { userId: "u1", name: "Alex", net: 250.0 },   // a favor
-  { userId: "u2", name: "Maggie", net: -120.0 },// debe
+  { userId: "u2", name: "Maggy", net: -120.0 },// debe
   { userId: "u3", name: "Roni", net: -90.0 },   // debe
-  { userId: "u4", name: "Luis", net: -40.0 },   // debe
+  { userId: "u4", name: "Lis", net: -40.0 },   // debe
 ];
 
 // ---------- Subcomponentes simples ----------
