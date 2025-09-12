@@ -14,6 +14,8 @@ import {
 import Settings from "@mui/icons-material/Settings";
 import Logout from "@mui/icons-material/Logout";
 import Person from "@mui/icons-material/Person";
+import AppTitle from "@/components/App/AppTitle";
+import {useRouter} from "next/router";
 
 export default function SplitMateAppBar({
                                           user = { name: "Usuario", avatarUrl: "" },
@@ -48,18 +50,10 @@ export default function SplitMateAppBar({
         {/* Toolbar sin padding lateral */}
         <Toolbar disableGutters sx={{ px: 2, gap: 1 }}>
           {/* Logo/Marca */}
-          <Box
-            aria-label="Split Mate"
-            sx={{
-              width: 28,
-              height: 28,
-              borderRadius: "8px",
-              bgcolor: "warning.main",
-              mr: 1,
-            }}
-          />
-          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 800 }}>
-            Split Mate
+          <AppTitle />
+
+          <Typography>
+            {user.name}
           </Typography>
 
           {/* Avatar + menú */}

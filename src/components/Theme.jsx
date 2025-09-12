@@ -40,10 +40,7 @@ const componentsOverrides = (mode) => ({
         '--sm-primary': brand.primary,
       },
       body: {
-        background:
-          mode === 'light'
-            ? `linear-gradient(180deg, ${brand.gray50} 0%, #FFFFFF 100%)`
-            : `linear-gradient(180deg, #0B1220 0%, ${brand.gray900} 100%)`,
+        background: '#FFFFFF',
       },
       '::selection': {
         backgroundColor: brand.accent,

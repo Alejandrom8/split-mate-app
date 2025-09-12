@@ -185,7 +185,7 @@ export default function SpaceDetailPage() {
 
   return (
     <>
-      <Container sx={{ py: 3 }}>
+      <Container sx={{ py: 3, minHeight: '100vh' }}>
         {/* Header del espacio */}
         <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ xs: "flex-start", sm: "center" }} justifyContent="space-between" sx={{ mb: 2 }}>
           <Stack spacing={0.5}>
@@ -243,16 +243,6 @@ export default function SpaceDetailPage() {
                   </Grid>
                 </CardContent>
               </Card>
-            </Grid>
-
-            {/* Panel derecho: balances y pagos sugeridos */}
-            <Grid item xs={12} md={4} sx={{ minWidth: 0 }}>
-              <Box sx={{ position: { md: "sticky" }, top: { md: 88 } }}>
-                <BalanceBoard balances={balances} />
-                <Box mt={2}>
-                  <PaymentsSuggestion balances={balances} />
-                </Box>
-              </Box>
             </Grid>
           </Grid>
         )}

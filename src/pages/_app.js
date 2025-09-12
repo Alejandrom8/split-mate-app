@@ -6,11 +6,15 @@ import Head from "next/head";
 import createEmotionCache from '../createEmotionCache';
 import SplitMateAppBar from "@/components/App/SplitMateAppBar";
 import * as React from "react";
+import {useRouter} from "next/router";
 
 const clientSideEmotionCache = createEmotionCache();
 
 export default function App(props) {
   const { Component, emotionCache = clientSideEmotionCache, pageProps } = props;
+  const router = useRouter();
+  const isSignInPage = ['/login', '/logout'].find(path => path === router.pathname) !== undefined;
+
   return <CacheProvider value={emotionCache}>
     <Head>
       <meta name="viewport" content="initial-scale=1, width=device-width" />
@@ -21,16 +25,18 @@ export default function App(props) {
           maxSnack={3}               // máximo número de snackbars visibles
           autoHideDuration={3000}    // tiempo en ms
           anchorOrigin={{
-            vertical: "top",
+            vertical: "bottom",
             horizontal: "right",
           }}
         >
-          <SplitMateAppBar
-            user={{ name: "Alex", avatarUrl: "https://i.pravatar.cc/200?img=68" }}
-            onProfile={() => console.log("perfil")}
-            onSettings={() => console.log("configuración")}
-            onLogout={() => console.log("logout")}
-          />
+          {
+            !isSignInPage && <SplitMateAppBar
+              user={{ name: "Alex", avatarUrl: "https://i.pravatar.cc/200?img=68" }}
+              onProfile={() => console.log("perfil")}
+              onSettings={() => console.log("configuración")}
+              onLogout={() => router.push("/logout")}
+            />
+          }
           <Component {...pageProps} />
         </SnackbarProvider>
       </ThemeProvider>
