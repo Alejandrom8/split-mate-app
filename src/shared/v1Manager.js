@@ -6,10 +6,10 @@ class ApiManager {
     this.instance = axios.create({ baseURL });
   }
 
-  async get(url, params = {}) {
-    console.log(`[ApiManager][GET] URL: ${this.baseURL}${url} | Params:`, params);
+  async get(url, params = {}, config) {
+    console.log(`[ApiManager][GET] URL: ${this.baseURL}${url} | Params:`, params, config);
     try {
-      const response = await this.instance.get(url, { params });
+      const response = await this.instance.get(url, { params, headers: config.headers });
       console.log('[ApiManager][GET] Success:', response.data);
       return response;
     } catch (error) {
@@ -18,10 +18,10 @@ class ApiManager {
     }
   }
 
-  async post(url, data = {}) {
-    console.log(`[ApiManager][POST] URL: ${this.baseURL}${url} | Data:`, data);
+  async post(url, data = {}, config = {}) {
+    console.log(`[ApiManager][POST] URL: ${this.baseURL}${url} | Data:`, data, config);
     try {
-      const response = await this.instance.post(url, data);
+      const response = await this.instance.post(url, data, config);
       console.log('[ApiManager][POST] Success:', response.data);
       return response;
     } catch (error) {

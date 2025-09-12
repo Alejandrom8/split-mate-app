@@ -7,6 +7,7 @@ import PasswordTextField from "@/components/Form/PasswordTextField";
 import UsernameTextField from "@/components/Form/UsernameTextField";
 import {useSnackbar} from "notistack";
 import clientManager from "@/shared/clientManager";
+import {useAuth} from "@/context/AuthContext";
 
 const rules = [
   { id: '1', label: 'Mínimo 8 caracteres', test: (v) => v.length >= 8 },
@@ -26,6 +27,7 @@ function SignInPage({ initialMode = 'login' }) {
   const [loading, setLoading] = useState(false);
   const isLogin = useMemo(() => mode === 'login', [mode]);
   const isSignUp = useMemo(() => mode === 'signup', [mode]);
+  const { login, signup } = useAuth();
 
   const setModeAsLogin = () => setMode('login');
   const setModeAsSignUp = () => setMode('signup');
@@ -45,9 +47,7 @@ function SignInPage({ initialMode = 'login' }) {
   const handleLoginSubmit = async () => {
     setLoading(true);
     try {
-      await clientManager.post('/login', {
-        username, password
-      });
+      await login({ username, password });
       enqueueSnackbar('Inicio de sesión exitoso', { variant: 'success' });
       setLoading(false);
       await router.push('/');
@@ -62,11 +62,7 @@ function SignInPage({ initialMode = 'login' }) {
   const handleSignupSubmit = async () => {
     setLoading(true);
     try {
-      await clientManager.post('/signup', {
-        username,
-        email,
-        password,
-      });
+      await signup({ username, email, password });
       enqueueSnackbar('Cuenta creada con éxito', { variant: 'success' });
       setLoading(false);
       await router.push('/');
@@ -77,6 +73,15 @@ function SignInPage({ initialMode = 'login' }) {
       setLoading(false);
     }
   };
+
+    const handleFormSubmit = async (e) => {
+      e.preventDefault();
+        if (isLogin) {
+          await handleLoginSubmit();
+        } else if (isSignUp) {
+          await handleSignupSubmit();
+        }
+    };
 
   return <Box sx={{
     display: 'flex',
@@ -89,6 +94,8 @@ function SignInPage({ initialMode = 'login' }) {
     paddingBottom: '100px',
   }}>
     <Box
+      component={'form'}
+      onSubmit={handleFormSubmit}
       sx={{
         width: 400,
         border: {
@@ -152,10 +159,10 @@ function SignInPage({ initialMode = 'login' }) {
         <Collapse in={isLogin} sx={{ width: '100%' }} unmountOnExit>
           <Stack direction={'column'} spacing={1} sx={{ width: '100%' }}>
             <Button
+              type={'submit'}
               variant="contained"
               color="primary"
               fullWidth
-              onClick={handleLoginSubmit}
               disabled={loading} // opcional: bloquea el botón mientras carga
             >
               {loading ? (
@@ -172,10 +179,10 @@ function SignInPage({ initialMode = 'login' }) {
         <Collapse in={isSignUp} sx={{ width: '100%' }} unmountOnExit>
           <Stack direction={'column'} spacing={1} sx={{ width: '100%' }}>
             <Button
+              type={'submit'}
               variant="contained"
               color="primary"
               fullWidth
-              onClick={handleSignupSubmit}
               disabled={loading} // opcional, evita doble clic
             >
               {loading ? (

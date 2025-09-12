@@ -10,21 +10,20 @@ import {
   ListItemIcon,
   Divider,
   Box,
+  Button,
 } from "@mui/material";
 import Settings from "@mui/icons-material/Settings";
 import Logout from "@mui/icons-material/Logout";
 import Person from "@mui/icons-material/Person";
 import AppTitle from "@/components/App/AppTitle";
-import {useRouter} from "next/router";
+import { useRouter } from "next/router";
+import { useAuth } from "@/context/AuthContext";
 
-export default function SplitMateAppBar({
-                                          user = { name: "Usuario", avatarUrl: "" },
-                                          onProfile = () => {},
-                                          onSettings = () => {},
-                                          onLogout = () => {},
-                                        }) {
+export default function SplitMateAppBar({ onSettings = () => {} }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
+  const { user } = useAuth();
+  const router = useRouter();
 
   const handleOpenMenu = (event) => setAnchorEl(event.currentTarget);
   const handleCloseMenu = () => setAnchorEl(null);
@@ -39,7 +38,7 @@ export default function SplitMateAppBar({
           left: 0,
           right: 0,
           backdropFilter: "blur(12px)",
-          bgcolor: "rgba(255,255,255,0.9)", // ajusta para modo oscuro si quieres
+          bgcolor: "rgba(255,255,255,0.9)",
           color: "text.primary",
           borderBottom: 1,
           borderColor: "divider",
@@ -47,14 +46,37 @@ export default function SplitMateAppBar({
           margin: 0,
         }}
       >
-        {/* Toolbar sin padding lateral */}
-        <Toolbar disableGutters sx={{ px: 2, gap: 1 }}>
+        <Toolbar disableGutters sx={{ px: 2, gap: 2 }}>
           {/* Logo/Marca */}
           <AppTitle />
 
-          <Typography>
-            {user.name}
-          </Typography>
+          {/* Opciones de navegación */}
+          <Box sx={{ display: "flex", gap: 2, ml: 4 }}>
+            <Button
+              color="inherit"
+              onClick={() => router.push("/")}
+              sx={{ textTransform: "none" }}
+            >
+              Inicio
+            </Button>
+            <Button
+              color="inherit"
+              onClick={() => router.push("/tickets")}
+              sx={{ textTransform: "none" }}
+            >
+              Mis tickets
+            </Button>
+          </Box>
+
+          {/* Empuja a la derecha el avatar */}
+          <Box sx={{ flexGrow: 1 }} />
+
+          {/* Nombre de usuario */}
+          {user && (
+            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+              @{user.username}
+            </Typography>
+          )}
 
           {/* Avatar + menú */}
           <IconButton
@@ -65,11 +87,11 @@ export default function SplitMateAppBar({
             aria-expanded={open ? "true" : undefined}
           >
             <Avatar
-              src={user.avatarUrl}
-              alt={user.name}
+              src={user?.avatarUrl}
+              alt={user?.name}
               sx={{ width: 36, height: 36 }}
             >
-              {user.name?.charAt(0)?.toUpperCase()}
+              {user?.username?.charAt(0)?.toUpperCase()}
             </Avatar>
           </IconButton>
 
@@ -86,7 +108,7 @@ export default function SplitMateAppBar({
             transformOrigin={{ horizontal: "right", vertical: "top" }}
             anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
           >
-            <MenuItem onClick={onProfile}>
+            <MenuItem onClick={() => router.push(`/user/${user?.id}`)}>
               <ListItemIcon>
                 <Person fontSize="small" />
               </ListItemIcon>
@@ -99,7 +121,7 @@ export default function SplitMateAppBar({
               Configuración
             </MenuItem>
             <Divider />
-            <MenuItem onClick={onLogout}>
+            <MenuItem onClick={() => router.push("/logout")}>
               <ListItemIcon>
                 <Logout fontSize="small" />
               </ListItemIcon>
@@ -109,7 +131,7 @@ export default function SplitMateAppBar({
         </Toolbar>
       </AppBar>
 
-      {/* Espaciador para que el contenido no quede debajo */}
+      {/* Espaciador */}
       <Toolbar />
     </>
   );

@@ -10,6 +10,9 @@ import {
 import SpaceCard from "@/components/Spaces/SpaceCard";
 import SearchIcon from '@mui/icons-material/Search';
 import {withAuth} from '../shared/withAuth';
+import CreateSpaceModal from "@/components/Spaces/CreateSpaceModal";
+import AddIcon from "@mui/icons-material/Add";
+import CreateSpaceSpeedDial from "@/components/Spaces/CreateSpaceDial";
 
 const mockSpaces = [
   {
@@ -56,6 +59,12 @@ const mockSpaces = [
 
 
 function Home() {
+  const [open, setOpen] = React.useState(false);
+
+  const handleCreated = (space) => {
+    // ejemplo: redirigir, refrescar lista, snackbar, etc.
+    console.log('Space creado:', space);
+  };
 
   return (
     <>
@@ -66,51 +75,56 @@ function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <Container>
-
         <Box sx={{ minHeight: 600 }}>
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ xs: "flex-start", sm: "center" }} justifyContent="space-between" sx={{ mb: 4 }}>
-            <Stack spacing={2}>
-              <Box pt={4}>
-                <Typography variant="h5">Tus espacios</Typography>
-              </Box>
-              <TextField
-                size="small"
-                sx={{ width: 400 }}
-                variant={'outlined'}
-                placeholder={'Buscar'}
-                label={'Buscar'}
-                InputProps={{
-                  endAdornment: <SearchIcon />,
-                }}
-              />
-            </Stack>
-            <Button variant="outlined" color={'primary'}>
-                Crear nuevo espacio
-            </Button>
-          </Stack>
-          {
-            !mockSpaces?.length && (
-              <Box sx={{ width: '100%', height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <img src={'/empty-spaces.svg'} width={'300px'} />
-              </Box>
-            )
-          }
-          {
-            mockSpaces?.length > 0 && (
-              <Grid container spacing={{ xs: 2, md: 4 }}>
-                {
-                  mockSpaces.map((item, index) => (
-                    <Grid item size={{ xs: 12, md: 4 }} key={index}>
-                      <SpaceCard item={item} />
-                    </Grid>
-                  ))
-                }
-              </Grid>
-            )
-          }
+          <Box sx={{ backgroundColor: 'rgba(0, 0, 0, 0.05)', mb: 5, p: 6 }}>
+            <Container>
+              <Stack direction={'column'} spacing={2} alignItems={'center'} justifyContent="space-between">
+                <Stack spacing={2} direction={'row'} justifyContent={'space-evenly'} alignItems={'center'} sx={{ width: '100%' }}>
+                  <Box>
+                    <Typography variant="h4">Tus espacios</Typography>
+                  </Box>
+                </Stack>
+                <TextField
+                  size="small"
+                  sx={{ width: { xs: '80vw', sm: '40vw' }, borderRadius: 10 }}
+                  variant={'outlined'}
+                  placeholder={'Buscar por nombre de espacio o persona'}
+                  InputProps={{
+                    endAdornment: <SearchIcon />,
+                  }}
+                />
+              </Stack>
+            </Container>
+          </Box>
+          <Container>
+            {
+              !mockSpaces?.length && (
+                <Box sx={{ width: '100%', height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <img src={'/empty-spaces.svg'} width={'300px'} />
+                </Box>
+              )
+            }
+            {
+              mockSpaces?.length > 0 && (
+                <Grid container spacing={{ xs: 2, md: 4 }}>
+                  {
+                    mockSpaces.map((item, index) => (
+                      <Grid item size={{ xs: 12, md: 4 }} key={index}>
+                        <SpaceCard item={item} />
+                      </Grid>
+                    ))
+                  }
+                </Grid>
+              )
+            }
+          </Container>
         </Box>
-      </Container>
+        <CreateSpaceSpeedDial onCreate={() => setOpen(true)} />
+        <CreateSpaceModal
+          open={open}
+          onClose={() => setOpen(false)}
+          onCreated={handleCreated}
+        />
     </>
   );
 }

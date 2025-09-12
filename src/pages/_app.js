@@ -7,6 +7,7 @@ import createEmotionCache from '../createEmotionCache';
 import SplitMateAppBar from "@/components/App/SplitMateAppBar";
 import * as React from "react";
 import {useRouter} from "next/router";
+import {AuthProvider} from "@/context/AuthContext";
 
 const clientSideEmotionCache = createEmotionCache();
 
@@ -19,7 +20,8 @@ export default function App(props) {
     <Head>
       <meta name="viewport" content="initial-scale=1, width=device-width" />
     </Head>
-    <ThemeProvider theme={ThemeLight}>
+    <AuthProvider initialUser={pageProps?.initialUser || null}>
+      <ThemeProvider theme={ThemeLight}>
         <CssBaseline />
         <SnackbarProvider
           maxSnack={3}               // máximo número de snackbars visibles
@@ -40,5 +42,6 @@ export default function App(props) {
           <Component {...pageProps} />
         </SnackbarProvider>
       </ThemeProvider>
+    </AuthProvider>
   </CacheProvider>
 }

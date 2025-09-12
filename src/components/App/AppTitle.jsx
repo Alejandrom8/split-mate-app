@@ -9,7 +9,7 @@ export default function AppTitle() {
         width: 28,
         height: 28,
         borderRadius: "8px",
-        bgcolor: "warning.main",
+        bgcolor: "secondary.main",
         mr: 1,
       }}
     />

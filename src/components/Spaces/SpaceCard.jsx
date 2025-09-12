@@ -14,6 +14,7 @@ import {
 import {useRouter} from "next/router";
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import TodayIcon from '@mui/icons-material/Today';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 
 
@@ -39,9 +40,9 @@ export default function SpaceCard({ item }) {
     }}
   >
       <CardContent>
-        <Stack direction={'row'} justifyContent={'space-between'} sx={{ width: '100%' }} spacing={1} alignItems={'center'}>
-          <Typography variant={'caption'}>
-            {date}
+        <Stack direction={'row'} justifyContent={'space-between'} sx={{ width: '100%', mb: 1 }} spacing={1} alignItems={'center'}>
+          <Typography variant={'h5'}>
+            {item.name}
           </Typography>
           <Stack direction={'row'}>
             <IconButton size={'small'} onClick={handleMenuClick}>
@@ -72,10 +73,13 @@ export default function SpaceCard({ item }) {
         </Stack>
         <Stack spacing={2} onClick={handleClick}>
           <Box>
-            <Typography variant={'h5'}>
-              {item.name}
-            </Typography>
-            <Typography>
+            <Stack direction={'row'} alignItems={'center'} sx={{ mb: 1 }} spacing={1}>
+              <TodayIcon fontSize={'small'} color={'secondary'} />
+              <Typography variant={'caption'} color={'textSecondary'}>
+                {date}
+              </Typography>
+            </Stack>
+            <Typography color={'textSecondary'}>
               {item.description}
             </Typography>
           </Box>
