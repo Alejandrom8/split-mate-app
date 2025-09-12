@@ -5,14 +5,16 @@ import {
   Container,
   Grid,
   Typography,
-  TextField, Stack, Button
+  TextField, Stack, Button, CircularProgress
 } from "@mui/material";
 import SpaceCard from "@/components/Spaces/SpaceCard";
 import SearchIcon from '@mui/icons-material/Search';
 import {withAuth} from '../shared/withAuth';
 import CreateSpaceModal from "@/components/Spaces/CreateSpaceModal";
-import AddIcon from "@mui/icons-material/Add";
 import CreateSpaceSpeedDial from "@/components/Spaces/CreateSpaceDial";
+import {useEffect, useState} from "react";
+import {useSnackbar} from "notistack";
+import clientManager from "@/shared/clientManager";
 
 const mockSpaces = [
   {
@@ -60,11 +62,31 @@ const mockSpaces = [
 
 function Home() {
   const [open, setOpen] = React.useState(false);
+  const [loading, setLoading] = useState(false);
+  const { enqueueSnackbar } = useSnackbar();
+  const [spaces, setSpaces] = useState(null);
+
+  const fetchSpaces = async () => {
+    setLoading(true);
+    try {
+      const result = await clientManager.get('/space/my-spaces');
+      setSpaces(result.data?.events);
+    } catch (error) {
+      enqueueSnackbar('Hubo un error al traer tus espacios', { variant: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCreated = (space) => {
     // ejemplo: redirigir, refrescar lista, snackbar, etc.
     console.log('Space creado:', space);
+    fetchSpaces().catch((err) => console.log(err));
   };
+
+  useEffect(() => {
+    fetchSpaces().catch((err) => console.log(err));
+  }, []);
 
   return (
     <>
@@ -98,17 +120,22 @@ function Home() {
           </Box>
           <Container>
             {
-              !mockSpaces?.length && (
+              loading && <Box sx={{ width: '100%', height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <CircularProgress />
+              </Box>
+            }
+            {
+              !spaces?.length && !loading && (
                 <Box sx={{ width: '100%', height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <img src={'/empty-spaces.svg'} width={'300px'} />
                 </Box>
               )
             }
             {
-              mockSpaces?.length > 0 && (
+              spaces?.length > 0 && (
                 <Grid container spacing={{ xs: 2, md: 4 }}>
                   {
-                    mockSpaces.map((item, index) => (
+                    spaces.map((item, index) => (
                       <Grid item size={{ xs: 12, md: 4 }} key={index}>
                         <SpaceCard item={item} />
                       </Grid>

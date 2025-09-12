@@ -12,15 +12,13 @@ import {
   Menu,
 } from "@mui/material";
 import {useRouter} from "next/router";
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
 import TodayIcon from '@mui/icons-material/Today';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 
 
 export default function SpaceCard({ item }) {
   const router = useRouter();
-  const date = useMemo(() => new Date(item.createdAt).toDateString(), []);
+  const date = useMemo(() => new Date(item.event_date).toDateString(), []);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
   const handleMenuClick = (event) => {
@@ -87,7 +85,20 @@ export default function SpaceCard({ item }) {
             <Stack direction={'row'} spacing={2}>
               <AvatarGroup>
                 {
-                  item.users.map((user, index) => (
+                  [
+                    {
+                      username: 'alex',
+                      picture: 'https://randomuser.me/api/portraits/men/32.jpg'
+                    },
+                    {
+                      username: 'Uri',
+                      picture: 'https://i.pravatar.cc/400?img=68'
+                    },
+                    {
+                      username: 'Maggy',
+                      picture: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&h=400&fit=crop'
+                    },
+                  ].map((user, index) => (
                     <Avatar
                       key={index}
                       src={user.picture}

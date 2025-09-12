@@ -14,7 +14,7 @@ const clientSideEmotionCache = createEmotionCache();
 export default function App(props) {
   const { Component, emotionCache = clientSideEmotionCache, pageProps } = props;
   const router = useRouter();
-  const isSignInPage = ['/login', '/logout'].find(path => path === router.pathname) !== undefined;
+  const shouldShowAppVar = ['/login', '/logout'].find(path => path === router.pathname) === undefined;
 
   return <CacheProvider value={emotionCache}>
     <Head>
@@ -24,19 +24,16 @@ export default function App(props) {
       <ThemeProvider theme={ThemeLight}>
         <CssBaseline />
         <SnackbarProvider
-          maxSnack={3}               // máximo número de snackbars visibles
-          autoHideDuration={3000}    // tiempo en ms
+          maxSnack={3}
+          autoHideDuration={3000}
           anchorOrigin={{
             vertical: "bottom",
             horizontal: "right",
           }}
         >
           {
-            !isSignInPage && <SplitMateAppBar
-              user={{ name: "Alex", avatarUrl: "https://i.pravatar.cc/200?img=68" }}
-              onProfile={() => console.log("perfil")}
+            shouldShowAppVar && <SplitMateAppBar
               onSettings={() => console.log("configuración")}
-              onLogout={() => router.push("/logout")}
             />
           }
           <Component {...pageProps} />

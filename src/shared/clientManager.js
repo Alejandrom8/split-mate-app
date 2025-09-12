@@ -63,7 +63,8 @@ class ClientManager {
       }
 
       if (!res.ok) {
-        console.log(payload, res.status);
+        console.log('[clientManager] Payload error:', payload);
+        console.log('[clientManager] Response error:', res);
         const err = new Error(payload?.error || payload?.message || `Request failed: ${res.status}`);
         err.status = res.status;
         err.data = payload;
@@ -73,19 +74,19 @@ class ClientManager {
 
       return payload;
     } catch (error) {
-      console.error(`[clientManager][${method}] Error:`, error);
+      console.log(`[clientManager][${method}] Error:`, error);
       throw error;
     } finally {
       clearTimeout(id);
     }
   }
 
-  get(path, options = {}) {
-    return this.request('GET', path, options);
+  async get(path, options = {}) {
+    return await this.request('GET', path, options);
   }
 
-  post(path, data = {}, options = {}) {
-    return this.request('POST', path, { ...options, data });
+  async post(path, data = {}, options = {}) {
+    return await this.request('POST', path, { ...options, data });
   }
 
   put(path, data = {}, options = {}) {

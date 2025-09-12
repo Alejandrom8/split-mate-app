@@ -8,25 +8,31 @@ export function AuthProvider({ initialUser = null, children }) {
   const [user, setUser] = useState(initialUser);
   const [loading, setLoading] = useState(!initialUser);
 
+
+  const hydrate = async () => {
+    try {
+      setLoading(true);
+      const res = await clientManager.get('/me');
+      console.log('RES AUTH', res);
+      if (res) {
+        setUser(res);
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      // pass
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Bootstrap del usuario al montar (si no vino por SSR)
   useEffect(() => {
     if (initialUser) return;
-    let mounted = true;
-    (async () => {
-      try {
-        setLoading(true);
-        const res = await clientManager.get('/me');
-        console.log('RES AUTH', res);
-        if (res) {
-          if (mounted) setUser(res);
-        } else {
-          if (mounted) setUser(null);
-        }
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => { mounted = false; };
+    hydrate().catch((error) => {
+      console.log(error);
+    });
   }, [initialUser]);
 
   // Helpers: login/logout

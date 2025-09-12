@@ -11,6 +11,8 @@ import {
   Button,
   CircularProgress,
 } from '@mui/material';
+import clientManager from "@/shared/clientManager";
+import {useSnackbar} from "notistack";
 
 export default function CreateSpaceModal({
                                            open,
@@ -21,6 +23,7 @@ export default function CreateSpaceModal({
   const [spaceName, setSpaceName] = React.useState('');
   const [spaceDescription, setSpaceDescription] = React.useState('');
   const [loading, setLoading] = React.useState(false);
+  const { enqueueSnackbar } = useSnackbar();
 
   const reset = () => {
     setSpaceName('');
@@ -33,16 +36,19 @@ export default function CreateSpaceModal({
     if (!spaceName.trim()) return; // simple validación
     setLoading(true);
     try {
-      // TODO: integra tu API real aquí
-      // const res = await client.post('/spaces', { name: spaceName, description: spaceDescription });
-      // const space = res.data;
-      const space = { id: 1, name: spaceName, description: spaceDescription }; // mock
+      const space = await clientManager.post('/space/create', {
+        name: spaceName,
+        description: spaceDescription,
+        event_date: new Date().toISOString().split('T')[0],
+      });
       onCreated?.(space);
+      enqueueSnackbar('Espacio creado exitosamente', { variant: 'success' });
       reset();
       onClose?.();
     } catch (err) {
       // Puedes mostrar un snackbar desde el padre si gustas
       console.error('[CreateSpaceModal] Error:', err);
+      enqueueSnackbar('Hubo un error al crear el espacio', { variant: 'error' });
     } finally {
       setLoading(false);
     }

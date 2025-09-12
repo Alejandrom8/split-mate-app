@@ -51,7 +51,7 @@ export default function SplitMateAppBar({ onSettings = () => {} }) {
           <AppTitle />
 
           {/* Opciones de navegación */}
-          <Box sx={{ display: "flex", gap: 2, ml: 4 }}>
+          <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 2, ml: 4 }}>
             <Button
               color="inherit"
               onClick={() => router.push("/")}
