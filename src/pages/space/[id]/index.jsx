@@ -2,10 +2,8 @@ import * as React from "react";
 import {
   AppBar, Toolbar, Typography, IconButton, Avatar, Menu, MenuItem, ListItemIcon, Divider,
   Box, Container, Grid, Stack, Button, Chip, Card, CardContent, CardHeader,
-  Tabs, Tab, Tooltip, LinearProgress, List, ListItem, ListItemText, Badge
+  Tabs, Tab, Tooltip, LinearProgress, List, ListItem, ListItemText, Badge, Breadcrumbs
 } from "@mui/material";
-import Settings from "@mui/icons-material/Settings";
-import Logout from "@mui/icons-material/Logout";
 import PersonAddAlt1 from "@mui/icons-material/PersonAddAlt1";
 import Paid from "@mui/icons-material/Paid";
 import ReceiptLong from "@mui/icons-material/ReceiptLong";
@@ -14,7 +12,13 @@ import TimelineIcon from "@mui/icons-material/Timeline";
 import Info from "@mui/icons-material/Info";
 import Add from "@mui/icons-material/Add";
 import CheckCircle from "@mui/icons-material/CheckCircle";
-import WarningAmber from "@mui/icons-material/WarningAmber";
+import {withAuth} from "@/shared/withAuth";
+import nookies from "nookies";
+import v1Manager from "@/shared/v1Manager";
+import ShareDialog from "@/components/Spaces/ShareDialog";
+import {useState} from "react";
+import Link from 'next/link';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 // ---------- Helpers ----------
 const fmtMoney = (n, currency = "MXN") =>
@@ -164,13 +168,30 @@ function PaymentsSuggestion({ balances }) {
   );
 }
 
+// Avatares compactos
+function AvatarGroupTight({ members }) {
+  return (
+    <Stack direction="row" spacing={-0.5}>
+      {members.slice(0, 5).map((m) => (
+        <Avatar key={m.id} src={m.avatar} alt={m.name} sx={{ width: 28, height: 28, border: "2px solid #fff" }} />
+      ))}
+      {members.length > 5 && (
+        <Avatar sx={{ width: 28, height: 28, bgcolor: "grey.300", color: "text.primary", fontSize: 12 }}>
+          +{members.length - 5}
+        </Avatar>
+      )}
+    </Stack>
+  );
+}
+
 // ---------- Página Detalle de espacio ----------
-export default function SpaceDetailPage() {
+function SpaceDetailPage({ initialData }) {
   const [tab, setTab] = React.useState(0);
   const [tickets, setTickets] = React.useState(mockTickets);
   const [members, setMembers] = React.useState(mockMembers);
   const [balances, setBalances] = React.useState(mockBalances);
   const [selectedTicketId, setSelectedTicketId] = React.useState(tickets[0]?.id || null);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const selectedTicket = React.useMemo(
     () => tickets.find((t) => t.id === selectedTicketId) || null,
@@ -186,22 +207,35 @@ export default function SpaceDetailPage() {
   return (
     <>
       <Container sx={{ py: 3, minHeight: '100vh' }}>
+        <Breadcrumbs sx={{ py: 2 }} separator={<NavigateNextIcon fontSize="small" />}>
+          <Link color="primary" href="/">
+            Inicio
+          </Link>
+          <Typography key="3" sx={{ color: 'text.primary' }}>
+            {initialData?.name}
+          </Typography>
+        </Breadcrumbs>
         {/* Header del espacio */}
         <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ xs: "flex-start", sm: "center" }} justifyContent="space-between" sx={{ mb: 2 }}>
           <Stack spacing={0.5}>
             <Stack direction="row" spacing={1} alignItems="center">
-              <Typography variant="h5" fontWeight={800}>Viaje CDMX</Typography>
-              <Chip size="small" color="primary" label="MXN" />
+              <Typography variant="h5" fontWeight={800}>{initialData?.name}</Typography>
+              <Chip size="small" color="primary" label={initialData?.currency} />
             </Stack>
             <Stack direction="row" spacing={1} alignItems="center">
               <AvatarGroupTight members={members} />
               <Typography variant="body2" color="text.secondary">
-                {members.length} miembros · {tickets.length} tickets
+                {initialData?.members_count} miembros · {initialData?.tickets_count} tickets
               </Typography>
             </Stack>
           </Stack>
           <Stack direction="row" spacing={1}>
-            <Button variant="outlined" startIcon={<PersonAddAlt1 />}>Invitar</Button>
+            <Button variant="outlined" startIcon={<PersonAddAlt1 />} onClick={() => setShareOpen(true)}>Invitar</Button>
+            <ShareDialog
+              open={shareOpen}
+              onClose={() => setShareOpen(false)}
+              shareUrl={typeof window !== "undefined" ? window.location.href : "https://tu.app/espacios/123"}
+            />
             <Button variant="contained" startIcon={<Paid />}>Settle up</Button>
           </Stack>
         </Stack>
@@ -356,18 +390,31 @@ export default function SpaceDetailPage() {
   );
 }
 
-// Avatares compactos
-function AvatarGroupTight({ members }) {
-  return (
-    <Stack direction="row" spacing={-0.5}>
-      {members.slice(0, 5).map((m) => (
-        <Avatar key={m.id} src={m.avatar} alt={m.name} sx={{ width: 28, height: 28, border: "2px solid #fff" }} />
-      ))}
-      {members.length > 5 && (
-        <Avatar sx={{ width: 28, height: 28, bgcolor: "grey.300", color: "text.primary", fontSize: 12 }}>
-          +{members.length - 5}
-        </Avatar>
-      )}
-    </Stack>
-  );
-}
+export const getServerSideProps = withAuth(async (context) => {
+  const cookies = nookies.get({ req: context.req });
+  const at = cookies.at;
+
+  if (!at) {
+    return context.res.status(401).json({ error: 'No autorizado: falta cookie at' });
+  }
+
+  try {
+    const { id } = context.params;
+    const upstream = await v1Manager.get(`/v1/events/${id}`, {}, {
+      headers: {
+        Authorization: `Bearer ${at}`,
+      },
+    });
+
+    return {
+      props: {
+        initialData: upstream.data?.data,
+      }
+    };
+  } catch (error) {
+    console.log(error);
+    return {};
+  }
+});
+
+export default SpaceDetailPage;

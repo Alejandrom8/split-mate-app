@@ -20,6 +20,7 @@
     "next": "15.5.2",
     "nookies": "^2.5.2",
     "notistack": "^3.0.2",
+    "nprogress": "^0.2.0",
     "prop-types": "^15.8.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",

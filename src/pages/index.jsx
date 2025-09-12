@@ -15,6 +15,8 @@ import CreateSpaceSpeedDial from "@/components/Spaces/CreateSpaceDial";
 import {useEffect, useState} from "react";
 import {useSnackbar} from "notistack";
 import clientManager from "@/shared/clientManager";
+import nookies from "nookies";
+import v1Manager from "@/shared/v1Manager";
 
 const mockSpaces = [
   {
@@ -60,11 +62,11 @@ const mockSpaces = [
 ];
 
 
-function Home() {
+function Home({ initialData }) {
   const [open, setOpen] = React.useState(false);
   const [loading, setLoading] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
-  const [spaces, setSpaces] = useState(null);
+  const [spaces, setSpaces] = useState(initialData?.events);
 
   const fetchSpaces = async () => {
     setLoading(true);
@@ -84,10 +86,6 @@ function Home() {
     fetchSpaces().catch((err) => console.log(err));
   };
 
-  useEffect(() => {
-    fetchSpaces().catch((err) => console.log(err));
-  }, []);
-
   return (
     <>
       <Head>
@@ -97,7 +95,7 @@ function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-        <Box sx={{ minHeight: 600 }}>
+        <Box sx={{ minHeight: 600, pb: 20 }}>
           <Box sx={{ backgroundColor: 'rgba(0, 0, 0, 0.05)', mb: 5, p: 6 }}>
             <Container>
               <Stack direction={'column'} spacing={2} alignItems={'center'} justifyContent="space-between">
@@ -156,6 +154,30 @@ function Home() {
   );
 }
 
-export const getServerSideProps = withAuth();
+export const getServerSideProps = withAuth(async (context) => {
+  const cookies = nookies.get({ req: context.req });
+  const at = cookies.at;
+
+  if (!at) {
+    return context.res.status(401).json({ error: 'No autorizado: falta cookie at' });
+  }
+
+  try {
+    const upstream = await v1Manager.get(`/v1/events/my-events`, {}, {
+      headers: {
+        Authorization: `Bearer ${at}`,
+      },
+    });
+
+    return {
+      props: {
+        initialData: upstream.data?.data,
+      }
+    };
+  } catch (error) {
+    console.log(error);
+    return {};
+  }
+});
 
 export default Home;

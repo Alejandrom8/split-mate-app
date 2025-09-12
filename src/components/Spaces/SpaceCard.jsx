@@ -9,12 +9,12 @@ import {
   CardContent, IconButton, MenuItem,
   Stack,
   Typography,
-  Menu,
+  Menu, ListItemIcon,
 } from "@mui/material";
 import {useRouter} from "next/router";
 import TodayIcon from '@mui/icons-material/Today';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-
+import DeleteIcon from '@mui/icons-material/Delete';
 
 export default function SpaceCard({ item }) {
   const router = useRouter();
@@ -55,7 +55,7 @@ export default function SpaceCard({ item }) {
                 paper: {
                   style: {
                     maxHeight: 48 * 4.5,
-                    width: '10ch',
+                    width: '15ch',
                   },
                 },
                 list: {
@@ -64,7 +64,10 @@ export default function SpaceCard({ item }) {
               }}
             >
               <MenuItem onClick={handleClose}>
-                Hola
+                <ListItemIcon>
+                  <DeleteIcon fontSize={'small'} />
+                </ListItemIcon>
+                Borrar
               </MenuItem>
             </Menu>
           </Stack>

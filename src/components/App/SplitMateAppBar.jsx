@@ -44,6 +44,7 @@ export default function SplitMateAppBar({ onSettings = () => {} }) {
           borderColor: "divider",
           borderRadius: 0,
           margin: 0,
+          zIndex: 10,
         }}
       >
         <Toolbar disableGutters sx={{ px: 2, gap: 2 }}>
@@ -51,22 +52,22 @@ export default function SplitMateAppBar({ onSettings = () => {} }) {
           <AppTitle />
 
           {/* Opciones de navegación */}
-          <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 2, ml: 4 }}>
-            <Button
-              color="inherit"
-              onClick={() => router.push("/")}
-              sx={{ textTransform: "none" }}
-            >
-              Inicio
-            </Button>
-            <Button
-              color="inherit"
-              onClick={() => router.push("/tickets")}
-              sx={{ textTransform: "none" }}
-            >
-              Mis tickets
-            </Button>
-          </Box>
+          {/*<Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 2, ml: 4 }}>*/}
+          {/*  <Button*/}
+          {/*    color="inherit"*/}
+          {/*    onClick={() => router.push("/")}*/}
+          {/*    sx={{ textTransform: "none" }}*/}
+          {/*  >*/}
+          {/*    Inicio*/}
+          {/*  </Button>*/}
+          {/*  <Button*/}
+          {/*    color="inherit"*/}
+          {/*    onClick={() => router.push("/tickets")}*/}
+          {/*    sx={{ textTransform: "none" }}*/}
+          {/*  >*/}
+          {/*    Mis tickets*/}
+          {/*  </Button>*/}
+          {/*</Box>*/}
 
           {/* Empuja a la derecha el avatar */}
           <Box sx={{ flexGrow: 1 }} />
