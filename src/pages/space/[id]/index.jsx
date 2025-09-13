@@ -1,3 +1,4 @@
+"use client";
 import * as React from "react";
 import {
   AppBar, Toolbar, Typography, IconButton, Avatar, Menu, MenuItem, ListItemIcon, Divider,
@@ -20,6 +21,8 @@ import {useState} from "react";
 import Link from 'next/link';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import TicketDropzone from "@/components/Tickets/TicketDropzone";
+import {useRouter} from "next/router";
+import CreateSpaceSpeedDial from "@/components/Spaces/CreateSpaceDial";
 
 // ---------- Helpers ----------
 const fmtMoney = (n, currency = "MXN") =>
@@ -193,6 +196,7 @@ function SpaceDetailPage({ initialData }) {
   const [balances, setBalances] = React.useState(mockBalances);
   const [selectedTicketId, setSelectedTicketId] = React.useState(tickets[0]?.id || null);
   const [shareOpen, setShareOpen] = useState(false);
+  const router = useRouter();
 
   const selectedTicket = React.useMemo(
     () => tickets.find((t) => t.id === selectedTicketId) || null,
@@ -207,6 +211,9 @@ function SpaceDetailPage({ initialData }) {
 
   return (
     <>
+      <CreateSpaceSpeedDial
+        onSpaceCreated={() => router.push('/')}
+      />
       <Container sx={{ py: 3, minHeight: '100vh' }}>
         <Breadcrumbs sx={{ py: 2 }} separator={<NavigateNextIcon fontSize="small" />}>
           <Link color="primary" href="/">
@@ -238,14 +245,19 @@ function SpaceDetailPage({ initialData }) {
             <ShareDialog
               open={shareOpen}
               onClose={() => setShareOpen(false)}
-              shareUrl={`${window.location.href}/join`}
+              shareUrl={window ? `${window.location.href}/join` : ''}
             />
             <Button variant="contained" startIcon={<Paid />}>Settle up</Button>
           </Stack>
         </Stack>
 
         {/* Tabs */}
-        <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }}>
+        <Tabs
+          value={tab}
+          onChange={(_, v) => setTab(v)} sx={{ mb: 2 }}
+          scrollButtons
+          allowScrollButtonsMobile
+        >
           <Tab icon={<ReceiptLong />} iconPosition="start" label="Tickets" />
           <Tab icon={<Info />} iconPosition="start" label="Resumen" />
           <Tab icon={<People />} iconPosition="start" label="Miembros" />
@@ -254,21 +266,11 @@ function SpaceDetailPage({ initialData }) {
 
         {tab === 0 && (
           <Grid container spacing={3} alignItems="flex-start">
-            <Grid item xs={12} sx={{ width: '100%' }}>
-              <TicketDropzone
-                onFiles={(accepted, rejected) => {
-                  console.log('Aceptados:', accepted);
-                  console.log('Rechazados:', rejected);
-                }}
-                maxFiles={5}
-                // accept={{ 'image/*': [] }} // ejemplo para solo imágenes
-              />
-            </Grid>
             {/* Izquierda: listado */}
             <Grid item xs={12} md={8}>
               <Grid container spacing={2}>
                 {tickets.map((t) => (
-                  <Grid item xs={12} key={t.id}>
+                  <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={t.id}>
                     <TicketRow ticket={t} selected={t.id === selectedTicketId} onSelect={(tk) => setSelectedTicketId(tk.id)} />
                   </Grid>
                 ))}
@@ -346,8 +348,12 @@ function SpaceDetailPage({ initialData }) {
             <CardContent>
               <Grid container spacing={2}>
                 {members.map((m) => (
-                  <Grid item xs={12} sm={6} md={4} key={m.id}>
-                    <Card variant="outlined">
+                  <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={m.id}>
+                    <Card
+                      variant="outlined"
+                      onClick={() => router.push(`/user/${m.id}`)}
+                      sx={{ cursor: 'pointer', '&:hover': { boxShadow: 4 } }}
+                    >
                       <CardContent>
                         <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
                           <Stack direction="row" spacing={1.5} alignItems="center">
@@ -357,17 +363,6 @@ function SpaceDetailPage({ initialData }) {
                               <Typography variant="caption" color="text.secondary">Miembro</Typography>
                             </Box>
                           </Stack>
-                          {/* Balance badge */}
-                          {(() => {
-                            const b = mockBalances.find((x) => x.userId === m.id)?.net ?? 0;
-                            return (
-                              <Badge color={b >= 0 ? "success" : "warning"} badgeContent={b >= 0 ? "a favor" : "debe"}>
-                                <Typography variant="body2" fontWeight={700}>
-                                  {fmtMoney(Math.abs(b))}
-                                </Typography>
-                              </Badge>
-                            );
-                          })()}
                         </Stack>
                       </CardContent>
                     </Card>

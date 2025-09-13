@@ -9,6 +9,7 @@ import * as React from "react";
 import {useRouter} from "next/router";
 import {AuthProvider} from "@/context/AuthContext";
 import ProgressBar from "@/components/App/ProgressBar";
+import {SpeedDialProvider} from "@/context/SpeedDialContext";
 
 const clientSideEmotionCache = createEmotionCache();
 
@@ -22,7 +23,8 @@ export default function App(props) {
       <meta name="viewport" content="initial-scale=1, width=device-width" />
     </Head>
     <AuthProvider initialUser={pageProps?.initialUser || null}>
-      <ThemeProvider theme={ThemeLight}>
+      <SpeedDialProvider>
+        <ThemeProvider theme={ThemeLight}>
         <CssBaseline />
         <SnackbarProvider
           maxSnack={3}
@@ -58,6 +60,7 @@ export default function App(props) {
           <Component {...pageProps} />
         </SnackbarProvider>
       </ThemeProvider>
+      </SpeedDialProvider>
     </AuthProvider>
   </CacheProvider>
 }

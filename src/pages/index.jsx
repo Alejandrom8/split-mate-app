@@ -144,11 +144,8 @@ function Home({ initialData }) {
             }
           </Container>
         </Box>
-        <CreateSpaceSpeedDial onCreate={() => setOpen(true)} />
-        <CreateSpaceModal
-          open={open}
-          onClose={() => setOpen(false)}
-          onCreated={handleCreated}
+        <CreateSpaceSpeedDial
+          onSpaceCreated={handleCreated}
         />
     </>
   );

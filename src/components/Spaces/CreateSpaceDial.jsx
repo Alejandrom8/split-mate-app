@@ -6,8 +6,20 @@ import SpeedDialIcon from "@mui/material/SpeedDialIcon";
 import AddIcon from "@mui/icons-material/Add";
 import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import CreateSpaceModal from "@/components/Spaces/CreateSpaceModal";
+import {useSpeedDial} from "@/context/SpeedDialContext";
+import UploadTicketModal from "@/components/Spaces/UploadTicketModal";
 
-export default function CreateSpaceSpeedDial({ onCreate }) {
+export default function CreateSpaceSpeedDial({
+     onCreate,
+     onSpaceCreated,
+     onTicketUploaded,
+}) {
+  const {
+    openCreateSpace, onOpenCreateSpace, onCloseCreateSpace,
+    openUploadTicket, onOpenUploadTicket, onCloseUploadTicket,
+  } = useSpeedDial();
+
   return (
     <Box
       sx={{
@@ -37,15 +49,25 @@ export default function CreateSpaceSpeedDial({ onCreate }) {
           key="crear-espacio"
           icon={<CreateNewFolderIcon />}
           tooltipTitle="Crear nuevo espacio"
-          onClick={onCreate}
+          onClick={onOpenCreateSpace}
         />
         <SpeedDialAction
           key="crear-ticket"
           icon={<CloudUploadIcon />}
           tooltipTitle="Subir ticket"
-          onClick={() => {}}
+          onClick={onOpenUploadTicket}
         />
       </SpeedDial>
+      <CreateSpaceModal
+        open={openCreateSpace}
+        onClose={onCloseCreateSpace}
+        onCreated={onSpaceCreated}
+      />
+      <UploadTicketModal
+        open={openUploadTicket}
+        onClose={onCloseUploadTicket}
+        onCreated={onTicketUploaded}
+      />
     </Box>
   );
 }
