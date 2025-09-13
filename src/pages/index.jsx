@@ -95,7 +95,7 @@ function Home({ initialData }) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-        <Box sx={{ minHeight: 600, pb: 20 }}>
+        <Box sx={{ minHeight: 600, pb: 10 }}>
           <Box sx={{ backgroundColor: 'rgba(0, 0, 0, 0.05)', mb: 5, p: 6 }}>
             <Container>
               <Stack direction={'column'} spacing={2} alignItems={'center'} justifyContent="space-between">

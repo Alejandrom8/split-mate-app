@@ -19,6 +19,7 @@ import ShareDialog from "@/components/Spaces/ShareDialog";
 import {useState} from "react";
 import Link from 'next/link';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import TicketDropzone from "@/components/Tickets/TicketDropzone";
 
 // ---------- Helpers ----------
 const fmtMoney = (n, currency = "MXN") =>
@@ -228,13 +229,16 @@ function SpaceDetailPage({ initialData }) {
                 {initialData?.members_count} miembros · {initialData?.tickets_count} tickets
               </Typography>
             </Stack>
+            <Typography>
+              {initialData?.description}
+            </Typography>
           </Stack>
           <Stack direction="row" spacing={1}>
             <Button variant="outlined" startIcon={<PersonAddAlt1 />} onClick={() => setShareOpen(true)}>Invitar</Button>
             <ShareDialog
               open={shareOpen}
               onClose={() => setShareOpen(false)}
-              shareUrl={typeof window !== "undefined" ? window.location.href : "https://tu.app/espacios/123"}
+              shareUrl={`${window.location.href}/join`}
             />
             <Button variant="contained" startIcon={<Paid />}>Settle up</Button>
           </Stack>
@@ -242,13 +246,68 @@ function SpaceDetailPage({ initialData }) {
 
         {/* Tabs */}
         <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }}>
-          <Tab icon={<Info />} iconPosition="start" label="Resumen" />
           <Tab icon={<ReceiptLong />} iconPosition="start" label="Tickets" />
+          <Tab icon={<Info />} iconPosition="start" label="Resumen" />
           <Tab icon={<People />} iconPosition="start" label="Miembros" />
           <Tab icon={<TimelineIcon />} iconPosition="start" label="Actividad" />
         </Tabs>
 
         {tab === 0 && (
+          <Grid container spacing={3} alignItems="flex-start">
+            <Grid item xs={12} sx={{ width: '100%' }}>
+              <TicketDropzone
+                onFiles={(accepted, rejected) => {
+                  console.log('Aceptados:', accepted);
+                  console.log('Rechazados:', rejected);
+                }}
+                maxFiles={5}
+                // accept={{ 'image/*': [] }} // ejemplo para solo imágenes
+              />
+            </Grid>
+            {/* Izquierda: listado */}
+            <Grid item xs={12} md={8}>
+              <Grid container spacing={2}>
+                {tickets.map((t) => (
+                  <Grid item xs={12} key={t.id}>
+                    <TicketRow ticket={t} selected={t.id === selectedTicketId} onSelect={(tk) => setSelectedTicketId(tk.id)} />
+                  </Grid>
+                ))}
+              </Grid>
+            </Grid>
+            {/* Derecha: detalle(sticky). Reemplaza por tu <TicketDetail /> si ya lo tienes */}
+            {/*<Grid item xs={12} md={4} sx={{ minWidth: 0 }}>*/}
+            {/*  <Box sx={{ position: { md: "sticky" }, top: { md: 88 } }}>*/}
+            {/*    {selectedTicket ? (*/}
+            {/*      <Card variant="outlined">*/}
+            {/*        <CardHeader title={selectedTicket.place} subheader={`Total: ${fmtMoney(selectedTicket.total)}`} />*/}
+            {/*        <CardContent>*/}
+            {/*          <LinearProgress variant="determinate" value={selectedTicket.status === "ready" ? 100 : selectedTicket.status === "processing" ? 60 : 20} sx={{ mb: 2 }} />*/}
+            {/*          <Stack direction="row" spacing={1} sx={{ mb: 1 }}>*/}
+            {/*            <Chip size="small" label={`${selectedTicket.itemsCount} ítems`} />*/}
+            {/*            <Chip size="small" label={`${selectedTicket.participantsCount} amigos`} />*/}
+            {/*          </Stack>*/}
+            {/*          <Typography variant="body2" color="text.secondary">*/}
+            {/*            Subido: {new Date(selectedTicket.uploadedAt).toLocaleString("es-MX")}*/}
+            {/*          </Typography>*/}
+            {/*          <Box sx={{ mt: 2 }}>*/}
+            {/*            <Button fullWidth variant="contained">Abrir ticket</Button>*/}
+            {/*          </Box>*/}
+            {/*        </CardContent>*/}
+            {/*      </Card>*/}
+            {/*    ) : (*/}
+            {/*      <Card variant="outlined">*/}
+            {/*        <CardContent>*/}
+            {/*          <Typography variant="h6">Selecciona un ticket</Typography>*/}
+            {/*          <Typography variant="body2" color="text.secondary">El detalle aparecerá aquí</Typography>*/}
+            {/*        </CardContent>*/}
+            {/*      </Card>*/}
+            {/*    )}*/}
+            {/*  </Box>*/}
+            {/*</Grid>*/}
+          </Grid>
+        )}
+
+        {tab === 1 && (
           <Grid container spacing={3} alignItems="flex-start">
             {/* KPIs */}
             <Grid item xs={12} md={8}>
@@ -277,51 +336,6 @@ function SpaceDetailPage({ initialData }) {
                   </Grid>
                 </CardContent>
               </Card>
-            </Grid>
-          </Grid>
-        )}
-
-        {tab === 1 && (
-          <Grid container spacing={3} alignItems="flex-start">
-            {/* Izquierda: listado */}
-            <Grid item xs={12} md={8}>
-              <Grid container spacing={2}>
-                {tickets.map((t) => (
-                  <Grid item xs={12} key={t.id}>
-                    <TicketRow ticket={t} selected={t.id === selectedTicketId} onSelect={(tk) => setSelectedTicketId(tk.id)} />
-                  </Grid>
-                ))}
-              </Grid>
-            </Grid>
-            {/* Derecha: detalle(sticky). Reemplaza por tu <TicketDetail /> si ya lo tienes */}
-            <Grid item xs={12} md={4} sx={{ minWidth: 0 }}>
-              <Box sx={{ position: { md: "sticky" }, top: { md: 88 } }}>
-                {selectedTicket ? (
-                  <Card variant="outlined">
-                    <CardHeader title={selectedTicket.place} subheader={`Total: ${fmtMoney(selectedTicket.total)}`} />
-                    <CardContent>
-                      <LinearProgress variant="determinate" value={selectedTicket.status === "ready" ? 100 : selectedTicket.status === "processing" ? 60 : 20} sx={{ mb: 2 }} />
-                      <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
-                        <Chip size="small" label={`${selectedTicket.itemsCount} ítems`} />
-                        <Chip size="small" label={`${selectedTicket.participantsCount} amigos`} />
-                      </Stack>
-                      <Typography variant="body2" color="text.secondary">
-                        Subido: {new Date(selectedTicket.uploadedAt).toLocaleString("es-MX")}
-                      </Typography>
-                      <Box sx={{ mt: 2 }}>
-                        <Button fullWidth variant="contained">Abrir ticket</Button>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <Card variant="outlined">
-                    <CardContent>
-                      <Typography variant="h6">Selecciona un ticket</Typography>
-                      <Typography variant="body2" color="text.secondary">El detalle aparecerá aquí</Typography>
-                    </CardContent>
-                  </Card>
-                )}
-              </Box>
             </Grid>
           </Grid>
         )}
