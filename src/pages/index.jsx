@@ -1,11 +1,13 @@
-import * as React from "react";
+import React, { useCallback, useEffect } from "react";
 import Head from "next/head";
 import {
   Box,
   Container,
   Grid,
   Typography,
-  TextField, Stack, CircularProgress
+  TextField, Stack,
+  CircularProgress,
+  IconButton
 } from "@mui/material";
 import SpaceCard from "@/components/Spaces/SpaceCard";
 import SearchIcon from '@mui/icons-material/Search';
@@ -14,14 +16,59 @@ import { useState } from "react";
 import v1Manager from "@/shared/v1Manager";
 import CreateSpeedDial from "@/components/App/CreateSpeedDial";
 import {useRouter} from "next/router";
+import useDelayedQuery from "@/hooks/useDelayedQuery";
+import { useSnackbar } from "notistack";
+import clientManager from "@/shared/clientManager";
+import CancelIcon from '@mui/icons-material/Cancel';
 
 function Home({ initialSpaces }) {
   const [spaces, setSpaces] = useState(initialSpaces?.events);
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const { enqueueSnackbar } = useSnackbar();
+  const [query, setQuery] = useState('');
+  const delayedQuery = useDelayedQuery(query, 700);
+
+
+  const fetchSpaces = useCallback(async (q) => {
+    setLoading(true);
+    try {
+      const _query = typeof q === 'string' ? q : query;
+      const result = await clientManager.get(`/space/my-spaces${_query && _query.trim() !== '' ? `?search=${_query}` : ''}`);
+      setSpaces(result.data?.events);
+    } catch (error) {
+      console.log(error);
+      enqueueSnackbar('Hubo un error al traer tus espacios', { variant: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  }, [query]);
 
   const handleCreated = (_space) => {
     router.push(`/space/${_space.id}`);
   };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      fetchSpaces()
+        .catch(error => {
+          console.log('FETCH SPACES ERROR', error);
+        })
+    }
+  };
+
+  const handleClearSearch = () => {
+    setQuery('');
+    fetchSpaces('')
+      .catch(error => {
+        console.log('FETCH SPACES ERROR', error);
+      })
+  };
+
+  // useEffect(() => {
+  //   if (delayedQuery === '') return;
+
+  // }, [delayedQuery]);
 
   return (
     <>
@@ -44,11 +91,20 @@ function Home({ initialSpaces }) {
               <Typography variant="h4">Tus espacios</Typography>
               <TextField
                 size="small"
-                sx={{ width: { xs: '80vw', sm: '40vw' }, borderRadius: 10 }}
+                sx={{ width: { xs: '80vw', sm: '60vw', md: '40vw' }, borderRadius: 10 }}
                 variant={'outlined'}
+                value={query}
+                onKeyDown={handleKeyDown}
+                onChange={(e) => setQuery(e.target.value)}
                 placeholder={'Buscar por nombre de espacio o persona'}
                 InputProps={{
-                  endAdornment: <SearchIcon />,
+                  endAdornment: query?.length > 0 
+                  ? <IconButton onClick={handleClearSearch} size="small">
+                    <CancelIcon fontSize="small"/>
+                  </IconButton>
+                  : <IconButton onClick={fetchSpaces} size='small'>
+                    <SearchIcon fontSize="small" />
+                  </IconButton>,
                 }}
               />
             </Stack>
@@ -56,18 +112,23 @@ function Home({ initialSpaces }) {
         </Box>
         <Container>
           {
-            !spaces?.length && (
+            loading && <Box sx={{ width: '100%', height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <CircularProgress />
+            </Box>
+          }
+          {
+            !spaces?.length && !loading && (
               <Box sx={{ width: '100%', height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <img src={'/empty-spaces.svg'} width={'300px'} />
               </Box>
             )
           }
           {
-            spaces?.length > 0 && (
+            spaces?.length > 0 && !loading && (
               <Grid container spacing={{ xs: 2, md: 4 }}>
                 {
                   spaces.map((item, index) => (
-                    <Grid item size={{ xs: 12, md: 4 }} key={index}>
+                    <Grid size={{ xs: 12, md: 4 }} key={index}>
                       <SpaceCard item={item} />
                     </Grid>
                   ))

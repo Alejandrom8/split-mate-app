@@ -10,10 +10,8 @@ class ApiManager {
     console.log(`[ApiManager][GET] URL: ${this.baseURL}${url} | Params:`, params, config);
     try {
       const response = await this.instance.get(url, { params, headers: config?.headers });
-      console.log('[ApiManager][GET] Success:', response.data);
       return response;
     } catch (error) {
-      console.error('[ApiManager][GET] Error:', error);
       throw error;
     }
   }

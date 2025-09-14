@@ -6,7 +6,6 @@ import Head from "next/head";
 import createEmotionCache from '../createEmotionCache';
 import SplitMateAppBar from "@/components/App/SplitMateAppBar";
 import * as React from "react";
-import {useRouter} from "next/router";
 import {AuthProvider} from "@/context/AuthContext";
 import ProgressBar from "@/components/App/ProgressBar";
 import {SpeedDialProvider} from "@/context/SpeedDialContext";
@@ -17,6 +16,9 @@ export default function App(props) {
   const { Component, emotionCache = clientSideEmotionCache, pageProps } = props;
 
   return <CacheProvider value={emotionCache}>
+    <Head>
+      <meta name="viewport" content="initial-scale=1, width=device-width" />
+    </Head>
     <AuthProvider>
       <SpeedDialProvider>
         <ThemeProvider theme={ThemeLight}>

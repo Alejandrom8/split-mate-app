@@ -11,8 +11,8 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'No autorizado: falta cookie at' });
   }
 
-  const { status } = req.query || {};
-  const upstream = await v1Manager.get(`/v1/events/my-events${status ? `?status=${status}` : ''}`, {}, {
+  const { status, search } = req.query || {};
+  const upstream = await v1Manager.get(`/v1/events/my-events${search && search.trim() !== '' ? `?search=${search}` : ''}`, {}, {
     headers: {
       Authorization: `Bearer ${at}`,
     },
