@@ -13,19 +13,14 @@ export function AuthProvider({ children }) {
       setLoading(true);
       const res = await clientManager.get('/users/profile');
       setUser(res?.data);
-    } catch (error) {
-      // pass
-      console.log(error);
-    } finally {
+    } catch {} finally {
       setLoading(false);
     }
   };
 
   // Bootstrap del usuario al montar (si no vino por SSR)
   useEffect(() => {
-    hydrate().catch((error) => {
-      console.log(error);
-    });
+    hydrate().then(() => console.log('hydrate finished')).catch(error => console.log(error));
   }, []);
 
   // Helpers: login/logout

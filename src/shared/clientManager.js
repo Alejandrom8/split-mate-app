@@ -41,7 +41,6 @@ class ClientManager {
 
     // Logs útiles para debug en dev
     if (process.env.NODE_ENV !== 'production') {
-      // eslint-disable-next-line no-console
       console.log(`[clientManager][${method}]`, { url, params, data, headers: reqHeaders });
     }
 

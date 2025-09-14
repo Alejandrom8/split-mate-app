@@ -1,21 +1,151 @@
 import v1Manager from '@/shared/v1Manager';
 import React from 'react';
 import nookies from 'nookies';
+import NextLink from 'next/link';
+import {
+  Box,
+  Card,
+  CardContent,
+  Stack,
+  Typography,
+  Divider,
+  Chip,
+  Button,
+  Avatar,
+} from '@mui/material';
 
-function SpaceJoin() {
-  return <div>hola</div>
+const fmtDate = (iso) => {
+  try {
+    return new Date(iso).toLocaleDateString('es-MX', {
+      year: 'numeric',
+      month: 'short',
+      day: '2-digit',
+    });
+  } catch {
+    return iso || '-';
+  }
+};
+
+const fmtMoney = (value, currency = 'MXN') => {
+  try {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency,
+      maximumFractionDigits: 2,
+    }).format(value || 0);
+  } catch {
+    return `${value} ${currency}`;
+  }
+};
+
+function SpaceJoin(data) {
+  const ev = data.initialEvent;
+
+  const ownerId = ev.created_by_user_id;
+  const ownerInitial = ownerId?.charAt(0)?.toUpperCase() || 'U';
+
+  return (
+    <Box
+      sx={{
+        minHeight: '100dvh',
+        display: 'grid',
+        placeItems: 'center',
+        px: 2,
+        background:
+          'linear-gradient(135deg, #FFF9C4 0%, #F5F5F5 100%)', // fondo suave
+      }}
+    >
+      <Stack spacing={3} alignItems="center" sx={{ width: '100%', maxWidth: 640 }}>
+        {/* Título de la app */}
+        <Typography variant="h4" fontWeight={800} textAlign="center">
+          Split mate
+        </Typography>
+
+        <Card elevation={3} sx={{ width: '100%' }}>
+          <CardContent>
+            <Stack spacing={2} alignItems="center" textAlign="center">
+              {/* Nombre del espacio */}
+              <Typography variant="h5" fontWeight={700}>
+                {ev.name}
+              </Typography>
+
+              {/* Chips de metadata */}
+              <Stack direction="row" spacing={1} flexWrap="wrap" justifyContent="center">
+                <Chip label={`Código: ${ev.event_code}`} color="default" variant="outlined" />
+                <Chip label={`Fecha: ${fmtDate(ev.event_date)}`} variant="outlined" />
+                <Chip label={`Moneda: ${ev.currency}`} variant="outlined" />
+                <Chip
+                  label={ev.status === 'active' ? 'Activo' : ev.status}
+                  color={ev.status === 'active' ? 'success' : 'default'}
+                  variant="filled"
+                  size="small"
+                />
+              </Stack>
+
+              {/* Owner */}
+              <Stack direction="row" spacing={1.5} alignItems="center">
+                <Avatar sx={{ width: 40, height: 40 }}>{ownerInitial}</Avatar>
+                <Stack>
+                  <Typography variant="body2" color="text.secondary">
+                    Owner
+                  </Typography>
+                  <Typography variant="body1" sx={{ wordBreak: 'break-all' }}>
+                    {ownerId}
+                  </Typography>
+                </Stack>
+              </Stack>
+
+              <Divider sx={{ width: '100%', my: 1 }} />
+
+              {/* Descripción */}
+              <Typography variant="body1" color="text.secondary">
+                {ev.description}
+              </Typography>
+
+              {/* Métricas */}
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={2}
+                justifyContent="center"
+                divider={<Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />}
+                sx={{ mt: 1 }}
+              >
+                <Typography variant="body2">
+                  Miembros: <b>{ev.members_count}</b>
+                </Typography>
+                <Typography variant="body2">
+                  Tickets: <b>{ev.tickets_count}</b>
+                </Typography>
+                <Typography variant="body2">
+                  Total: <b>{fmtMoney(ev.total_amount, ev.currency)}</b>
+                </Typography>
+              </Stack>
+
+              {/* Botón Entrar */}
+              <Button
+                component={NextLink}
+                href={`/login?next=${encodeURIComponent(`/space/${ev.id}/join`)}`}
+                variant="contained"
+                size="large"
+                sx={{ mt: 1 }}
+              >
+                Entrar al espacio
+              </Button>
+            </Stack>
+          </CardContent>
+        </Card>
+
+        <Typography variant="caption" color="text.disabled" textAlign="center">
+          Estás viendo una vista previa pública del espacio. Inicia sesión o crea una cuenta para participar.
+        </Typography>
+      </Stack>
+    </Box>
+  );
 }
 
 export const getServerSideProps = async (ctx) => {
+  let event;
   try {
-    /**
-     * 1. logout view
-     * 2. El usuario no esta en el espacio
-     * 3. El usuario ya esta en el espacio
-     */
-
-    const cookies = nookies.get({ req: ctx.req });
-    const at = cookies.at;
     const { id } = ctx.params;
     const eventResult = await v1Manager.get(`/v1/events/${id}`);
 
@@ -25,13 +155,13 @@ export const getServerSideProps = async (ctx) => {
       };
     }
 
-    const event = eventResult.data.data;
+    event = eventResult.data.data;
+    let joinData = {};
+
+    const cookies = nookies.get({ req: ctx.req });
+    const at = cookies.at;
 
     if (at) {
-      // check if user is at the space
-      // if it is, redirect to the space
-      // if it is not, join the user to the space and show Join success view.
-
       const joinResult = await v1Manager.post(
         '/v1/events/join', 
         {
@@ -39,24 +169,41 @@ export const getServerSideProps = async (ctx) => {
         },
         {
           headers: {
-            Authorization: 'Bearer ' + at
-           }
+            accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${at}`,
+            }
         }
       );
 
-      const join = joinResult.data.data;
-      if (joinResult.data?.success) {
-        
+      if (joinResult.data.success) {
+        return {
+          redirect: {
+            destination: `/space/${event.id}?mode=joined`,
+            permanent: false
+          }
+        }
       }
     }
 
     return {
       props: {
-        initialEvent: result.data.data
+        initialEvent: event,
+        joinData,
       }
     };
   } catch (error) {
-    console.log('ERROR', error);
+    if (error.response) {
+      const errorData = error.response.data;
+      if (!errorData.success) {
+        return {
+          redirect: {
+            destination: `/space/${event.id}`,
+            permanent: false
+          }
+        };
+      }
+    }
     return {
       notFound: true
     };

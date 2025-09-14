@@ -22,10 +22,9 @@ class ApiManager {
     console.log(`[ApiManager][POST] URL: ${this.baseURL}${url} | Data:`, data, config);
     try {
       const response = await this.instance.post(url, data, config);
-      console.log('[ApiManager][POST] Success:', response.data);
       return response;
     } catch (error) {
-      console.error('[ApiManager][POST] Error:', error);
+      // TODO: log error
       throw error;
     }
   }

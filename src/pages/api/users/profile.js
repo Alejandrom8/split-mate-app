@@ -46,7 +46,7 @@ export default async function handler(req, res) {
         
         if (!upstream?.data?.success) {
           return res.status(502).json({
-            error: 'Actualización de perfil no exitosa',
+            error: 'Error al obtener el perfil',
             trace_id: upstream?.data?.trace_id,
             message: upstream?.data?.message,
           });
