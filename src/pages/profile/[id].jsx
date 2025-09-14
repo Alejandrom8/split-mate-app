@@ -1,12 +1,24 @@
 // pages/profile.js
 import { useAuth } from '../../context/AuthContext';
-import { Avatar, Box, Typography, Stack, Paper } from '@mui/material';
+import { Avatar, Box, Typography, Stack, Paper, Breadcrumbs, Link } from '@mui/material';
 import {withAuth} from "@/shared/withAuth";
+import HomeIcon from "@mui/icons-material/Home";
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import NextLink from "next/link";
 
 function ProfilePage() {
   const { user } = useAuth();
 
-  return (
+  return <>
+    <Breadcrumbs sx={{ py: 2 }} separator={<NavigateNextIcon fontSize="small" />}>
+      <Link color="primary" href="/" component={NextLink} sx={{ display: 'flex', alignItems: 'center' }}>
+        <HomeIcon fontSize={'small'} sx={{ mr: 1 }}/>
+        Inicio
+      </Link>
+      <Typography key="3" sx={{ color: 'text.primary' }}>
+        Perfil
+      </Typography>
+    </Breadcrumbs>
     <Box
       display="flex"
       alignItems="center"
@@ -27,7 +39,7 @@ function ProfilePage() {
         </Stack>
       </Paper>
     </Box>
-  );
+  </>;
 }
 
 export const getServerSideProps = withAuth();

@@ -1,24 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, createContext, useContext } from 'react';
 import clientManager from "@/shared/clientManager";
 
-const AuthContext = React.createContext(null);
-export const useAuth = () => React.useContext(AuthContext);
+const AuthContext = createContext(null);
+export const useAuth = () => useContext(AuthContext);
 
-export function AuthProvider({ initialUser = null, children }) {
-  const [user, setUser] = useState(initialUser);
-  const [loading, setLoading] = useState(!initialUser);
-
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState();
+  const [loading, setLoading] = useState(false);
 
   const hydrate = async () => {
     try {
       setLoading(true);
-      const res = await clientManager.get('/me');
-      console.log('RES AUTH', res);
-      if (res) {
-        setUser(res);
-      } else {
-        setUser(null);
-      }
+      const res = await clientManager.get('/users/profile');
+      setUser(res?.data);
     } catch (error) {
       // pass
       console.log(error);
@@ -29,11 +23,10 @@ export function AuthProvider({ initialUser = null, children }) {
 
   // Bootstrap del usuario al montar (si no vino por SSR)
   useEffect(() => {
-    if (initialUser) return;
     hydrate().catch((error) => {
       console.log(error);
     });
-  }, [initialUser]);
+  }, []);
 
   // Helpers: login/logout
   const login = async ({ username, password }) => {
@@ -50,7 +43,7 @@ export function AuthProvider({ initialUser = null, children }) {
     } else {
       setUser(null);
     }
-  };
+};
 
   const signup = async ({ username, email, password }) => {
     const res = await clientManager.post('/signup', {
@@ -58,6 +51,7 @@ export function AuthProvider({ initialUser = null, children }) {
       email,
       password,
     });
+    console.log('SITNUP RESULT', res);
     if (!res.ok) {
       const err = await res?.error || null;
       throw new Error(err.error || 'Error al crear cuenta');

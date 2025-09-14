@@ -1,6 +1,7 @@
 // /pages/api/me.js
 import nookies from 'nookies';
-import v1Manager from '../../shared/v1Manager'; // ajusta la ruta según tu proyecto
+import v1Manager from '../../shared/v1Manager';
+import {createAuthHeader} from "@/shared/utils"; // ajusta la ruta según tu proyecto
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -8,18 +9,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    const cookies = nookies.get({ req });
-    const at = cookies.at;
-
-    if (!at) {
+    const authHeader = createAuthHeader(req);
+    if (!authHeader) {
       return res.status(401).json({ error: 'No autorizado: falta cookie at' });
     }
 
-    const upstream = await v1Manager.get('/v1/users/me', {}, {
-      headers: {
-        Authorization: `Bearer ${at}`,
-      },
-    });
+    const upstream = await v1Manager.get('/v1/users/me', {}, authHeader);
 
     const payload = upstream?.data || upstream;
 

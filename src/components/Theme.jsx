@@ -150,6 +150,24 @@ const componentsOverrides = (mode) => ({
       },
     },
   },
+  MuiLink: {
+    styleOverrides: {
+      root: ({ theme }) => ({
+        color: theme.palette.primary.main,       // color base
+        textDecorationColor: theme.palette.primary.main,
+        "&:hover": {
+          color: theme.palette.secondary.main,   // color en hover
+          textDecorationColor: theme.palette.secondary.main,
+        },
+        "&:visited": {
+          color: theme.palette.grey[600],        // color visited
+        },
+        "&:active": {
+          color: theme.palette.error.main,       // color active (click)
+        },
+      }),
+    },
+  },
 });
 
 const splitMateLight = createTheme({

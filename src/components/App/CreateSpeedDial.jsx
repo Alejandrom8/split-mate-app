@@ -6,12 +6,11 @@ import SpeedDialIcon from "@mui/material/SpeedDialIcon";
 import AddIcon from "@mui/icons-material/Add";
 import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import CreateSpaceModal from "@/components/Spaces/CreateSpaceModal";
+import CreateSpaceModal from "@/components/App/CreateSpaceModal";
 import {useSpeedDial} from "@/context/SpeedDialContext";
-import UploadTicketModal from "@/components/Spaces/UploadTicketModal";
+import UploadTicketModal from "@/components/App/UploadTicketModal";
 
-export default function CreateSpaceSpeedDial({
-     onCreate,
+export default function CreateSpeedDial({
      onSpaceCreated,
      onTicketUploaded,
 }) {
@@ -38,12 +37,6 @@ export default function CreateSpaceSpeedDial({
             openIcon={<AddIcon />}
           />
         }
-        // sx={{
-        //   '& .MuiFab-primary': {
-        //     backgroundColor: 'red', // tu color
-        //     '&:hover': { backgroundColor: '#00796b' }, // hover
-        //   },
-        // }}
       >
         <SpeedDialAction
           key="crear-espacio"

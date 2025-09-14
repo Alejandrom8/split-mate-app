@@ -24,9 +24,12 @@ export default function SplitMateAppBar({ onSettings = () => {} }) {
   const open = Boolean(anchorEl);
   const { user } = useAuth();
   const router = useRouter();
+  const shouldShowAppVar = ['/login', '/logout'].find(path => path === router.pathname) === undefined && user;
 
   const handleOpenMenu = (event) => setAnchorEl(event.currentTarget);
   const handleCloseMenu = () => setAnchorEl(null);
+
+  if (!shouldShowAppVar) return <></>;
 
   return (
     <>
@@ -51,31 +54,13 @@ export default function SplitMateAppBar({ onSettings = () => {} }) {
           {/* Logo/Marca */}
           <AppTitle />
 
-          {/* Opciones de navegación */}
-          {/*<Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 2, ml: 4 }}>*/}
-          {/*  <Button*/}
-          {/*    color="inherit"*/}
-          {/*    onClick={() => router.push("/")}*/}
-          {/*    sx={{ textTransform: "none" }}*/}
-          {/*  >*/}
-          {/*    Inicio*/}
-          {/*  </Button>*/}
-          {/*  <Button*/}
-          {/*    color="inherit"*/}
-          {/*    onClick={() => router.push("/tickets")}*/}
-          {/*    sx={{ textTransform: "none" }}*/}
-          {/*  >*/}
-          {/*    Mis tickets*/}
-          {/*  </Button>*/}
-          {/*</Box>*/}
-
           {/* Empuja a la derecha el avatar */}
           <Box sx={{ flexGrow: 1 }} />
 
           {/* Nombre de usuario */}
           {user && (
             <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-              @{user.username}
+              @{user?.username}
             </Typography>
           )}
 
@@ -88,7 +73,7 @@ export default function SplitMateAppBar({ onSettings = () => {} }) {
             aria-expanded={open ? "true" : undefined}
           >
             <Avatar
-              src={user?.avatarUrl}
+              src={user?.profile_image_url}
               alt={user?.name}
               sx={{ width: 36, height: 36 }}
             >
@@ -109,7 +94,7 @@ export default function SplitMateAppBar({ onSettings = () => {} }) {
             transformOrigin={{ horizontal: "right", vertical: "top" }}
             anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
           >
-            <MenuItem onClick={() => router.push(`/user/${user?.id}`)}>
+            <MenuItem onClick={() => router.push(`/profile/me`)}>
               <ListItemIcon>
                 <Person fontSize="small" />
               </ListItemIcon>

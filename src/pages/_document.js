@@ -12,6 +12,7 @@ export default class MyDocument extends Document {
           {/* Punto de inserción para Emotion */}
           <meta name="emotion-insertion-point" content="" />
           {/* Tipos de letra, favicons, etc. */}
+          <meta name="viewport" content="initial-scale=1, width=device-width" />
         </Head>
         <body>
         <Main />

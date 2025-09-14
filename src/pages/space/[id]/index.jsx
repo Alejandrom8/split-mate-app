@@ -18,11 +18,13 @@ import nookies from "nookies";
 import v1Manager from "@/shared/v1Manager";
 import ShareDialog from "@/components/Spaces/ShareDialog";
 import {useState} from "react";
-import Link from 'next/link';
+import NextLink from 'next/link';
+import Link from "@mui/material/Link";
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import TicketDropzone from "@/components/Tickets/TicketDropzone";
 import {useRouter} from "next/router";
-import CreateSpaceSpeedDial from "@/components/Spaces/CreateSpaceDial";
+import CreateSpaceSpeedDial from "@/components/App/CreateSpeedDial";
+import Head from "next/head";
+import HomeIcon from '@mui/icons-material/Home';
 
 // ---------- Helpers ----------
 const fmtMoney = (n, currency = "MXN") =>
@@ -211,12 +213,20 @@ function SpaceDetailPage({ initialData }) {
 
   return (
     <>
+      <Head>
+        <title>Split Mate | {initialData?.name}</title>
+        <meta name="description" content="Split Mate - separa gastos con tus amigos" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
       <CreateSpaceSpeedDial
         onSpaceCreated={() => router.push('/')}
       />
+
       <Container sx={{ py: 3, minHeight: '100vh' }}>
         <Breadcrumbs sx={{ py: 2 }} separator={<NavigateNextIcon fontSize="small" />}>
-          <Link color="primary" href="/">
+          <Link color="primary" href="/" component={NextLink} sx={{ display: 'flex', alignItems: 'center' }}>
+            <HomeIcon fontSize={'small'} sx={{ mr: 1 }}/>
             Inicio
           </Link>
           <Typography key="3" sx={{ color: 'text.primary' }}>
@@ -236,7 +246,7 @@ function SpaceDetailPage({ initialData }) {
                 {initialData?.members_count} miembros · {initialData?.tickets_count} tickets
               </Typography>
             </Stack>
-            <Typography>
+            <Typography variant={'body1'}>
               {initialData?.description}
             </Typography>
           </Stack>
@@ -245,7 +255,11 @@ function SpaceDetailPage({ initialData }) {
             <ShareDialog
               open={shareOpen}
               onClose={() => setShareOpen(false)}
-              shareUrl={window ? `${window.location.href}/join` : ''}
+              shareUrl={
+                typeof window !== "undefined"
+                  ? `${window.location.href}/join`
+                  : "/"
+              }
             />
             <Button variant="contained" startIcon={<Paid />}>Settle up</Button>
           </Stack>
@@ -351,7 +365,7 @@ function SpaceDetailPage({ initialData }) {
                   <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={m.id}>
                     <Card
                       variant="outlined"
-                      onClick={() => router.push(`/user/${m.id}`)}
+                      onClick={() => router.push(`/profile/${m.id}`)}
                       sx={{ cursor: 'pointer', '&:hover': { boxShadow: 4 } }}
                     >
                       <CardContent>
@@ -399,22 +413,14 @@ function SpaceDetailPage({ initialData }) {
   );
 }
 
-export const getServerSideProps = withAuth(async (context) => {
-  const cookies = nookies.get({ req: context.req });
-  const at = cookies.at;
-
-  if (!at) {
-    return context.res.status(401).json({ error: 'No autorizado: falta cookie at' });
-  }
-
+export const getServerSideProps = withAuth(async ({ authHeader, ...ctx }) => {
   try {
-    const { id } = context.params;
-    const upstream = await v1Manager.get(`/v1/events/${id}`, {}, {
-      headers: {
-        Authorization: `Bearer ${at}`,
-      },
-    });
+    const { id } = ctx.params;
+    if (!id) {
+      return { notFound: true };
+    }
 
+    const upstream = await v1Manager.get(`/v1/events/${id}`, {}, authHeader);
     return {
       props: {
         initialData: upstream.data?.data,

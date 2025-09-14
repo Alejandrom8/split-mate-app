@@ -33,7 +33,7 @@ export default async function handler(req, res) {
 
     return res.status(201).json({ ok: true, message: 'Cuenta creada exitosamente' });
   } catch (err) {
-    console.error('[Signup API] Error:', err);
+    console.error('[Signup API] Error:', await err.toJSON());
     return res.status(500).json({ error: 'Error interno en el servidor' });
   }
 }

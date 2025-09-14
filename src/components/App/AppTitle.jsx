@@ -9,10 +9,11 @@ export default function AppTitle() {
         width: 28,
         height: 28,
         borderRadius: "8px",
-        bgcolor: "secondary.main",
         mr: 1,
       }}
-    />
+    >
+      <img src={'/logo.png'} width={'28px'} height={'28px'} />
+    </Box>
     <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 800 }}>
       Split Mate
     </Typography>
