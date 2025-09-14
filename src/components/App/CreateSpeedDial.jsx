@@ -11,6 +11,8 @@ import {useSpeedDial} from "@/context/SpeedDialContext";
 import UploadTicketModal from "@/components/App/UploadTicketModal";
 
 export default function CreateSpeedDial({
+     authHeader,
+     spaceId = null,
      onSpaceCreated,
      onTicketUploaded,
 }) {
@@ -57,6 +59,8 @@ export default function CreateSpeedDial({
         onCreated={onSpaceCreated}
       />
       <UploadTicketModal
+        _authHeader={authHeader}
+        _spaceId={spaceId}
         open={openUploadTicket}
         onClose={onCloseUploadTicket}
         onCreated={onTicketUploaded}

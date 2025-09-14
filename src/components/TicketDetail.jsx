@@ -1,19 +1,14 @@
 import * as React from "react";
 import {
   Box,
-  Grid,
   Card,
   CardHeader,
   CardContent,
-  CardMedia,
   CardActions,
   Typography,
   Divider,
   Chip,
   Stack,
-  List,
-  ListItem,
-  ListItemText,
   IconButton,
   Tooltip,
   Button,
@@ -21,17 +16,12 @@ import {
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import PlaceIcon from "@mui/icons-material/Place";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import GroupsIcon from "@mui/icons-material/Groups";
-import DownloadIcon from "@mui/icons-material/Download";
 import ShareIcon from "@mui/icons-material/Share";
 import EditIcon from "@mui/icons-material/Edit";
-
-const fmtMoney = (n, currency = "MXN") =>
-  new Intl.NumberFormat("es-MX", { style: "currency", currency }).format(n);
-
-const fmtDate = (d) =>
-  new Intl.DateTimeFormat("es-MX", { dateStyle: "medium", timeStyle: "short" })
-    .format(typeof d === "string" ? new Date(d) : d);
+import {fmtDate, fmtMoney} from "@/shared/utils";
+import {TICKET_STATUS_MAP} from "@/shared/constants";
+import {useRouter} from "next/router";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 export default function TicketDetail({
   ticket,
@@ -39,11 +29,12 @@ export default function TicketDetail({
   onShare,
   onSplit,
 }) {
+  const router = useRouter();
   const {
     picture,
-    place,
-    uploadedAt,
-    total,
+    establishment_name,
+    ticket_date,
+    total_amount,
     subtotal,
     taxes,
     tip,
@@ -51,274 +42,277 @@ export default function TicketDetail({
     currency = "MXN",
     items = [],
     participants = [],
-    status = "ready", // pending | processing | ready | error
+    validation_status = 'hidden',
     notes,
     paymentMethod,   // 'Tarjeta', 'Efectivo', etc.
     category,        // 'Restaurante', 'Super', etc.
     ocrConfidence,   // 0-1
   } = ticket || {};
 
-  const statusMap = {
-    ready: { label: "OCR listo", color: "success" },
-    processing: { label: "Procesando", color: "warning" },
-    pending: { label: "Pendiente", color: "warning" },
-    error: { label: "Error", color: "error" },
-  };
+  return <Stack spacing={1}>
+      <Box sx={{ py: 2 }}>
+        <Button
+          onClick={() => router.back()}
+          startIcon={<ArrowBackIcon />}
+          variant="text"
+          sx={{ color: "text.primary" }}
+        >
+          Regresar
+        </Button>
+      </Box>
+      <Card variant="outlined">
+        <CardHeader
+          avatar={<ReceiptLongIcon />}
+          title={
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Typography variant="h6" fontWeight={800} noWrap>
+                {establishment_name || "—"}
+              </Typography>
+              {validation_status && (
+                <Chip
+                  size="small"
+                  color={TICKET_STATUS_MAP[validation_status]?.color || "default"}
+                  label={TICKET_STATUS_MAP[validation_status]?.label || validation_status}
+                />
+              )}
+            </Stack>
+          }
+          subheader={
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <PlaceIcon fontSize="small" />
+                <Typography variant="body2" color="text.secondary">
+                  {category || "Sin categoría"}
+                </Typography>
+              </Stack>
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <AccessTimeIcon fontSize="small" />
+                <Typography variant="body2" color="text.secondary">
+                  {ticket_date ? fmtDate(ticket_date) : "—"}
+                </Typography>
+              </Stack>
+            </Stack>
+          }
+        />
 
-  return (
-          <Card variant="outlined">
-            <CardHeader
-              avatar={<ReceiptLongIcon />}
-              title={
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <Typography variant="h6" fontWeight={800} noWrap>
-                    {place || "—"}
-                  </Typography>
-                  {status && (
-                    <Chip
-                      size="small"
-                      color={statusMap[status]?.color || "default"}
-                      label={statusMap[status]?.label || status}
-                    />
-                  )}
-                </Stack>
-              }
-              subheader={
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <Stack direction="row" spacing={0.5} alignItems="center">
-                    <PlaceIcon fontSize="small" />
-                    <Typography variant="body2" color="text.secondary">
-                      {category || "Sin categoría"}
-                    </Typography>
-                  </Stack>
-                  <Stack direction="row" spacing={0.5} alignItems="center">
-                    <AccessTimeIcon fontSize="small" />
-                    <Typography variant="body2" color="text.secondary">
-                      {uploadedAt ? fmtDate(uploadedAt) : "—"}
-                    </Typography>
-                  </Stack>
-                </Stack>
-              }
+        <Divider />
+
+        <CardContent>
+          {/* Papel térmico del ticket */}
+          <Box
+            sx={{
+              position: "relative",
+              mx: "auto",
+              maxWidth: 520,
+              bgcolor: "#fff",
+              color: "text.primary",
+              borderRadius: 1,
+              boxShadow: "0 1px 0 rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.03)",
+              p: 2,
+              fontFamily:
+                'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+              letterSpacing: ".01em",
+              // Dientes tipo “perforación”
+              "&::before, &::after": {
+                content: '""',
+                position: "absolute",
+                left: 0,
+                right: 0,
+                height: 10,
+                background:
+                  "radial-gradient(circle at 10px 10px, transparent 10px, #fff 10px) top left / 20px 20px repeat-x",
+              },
+              "&::before": { top: -10 },
+              "&::after": {
+                bottom: -10,
+                transform: "scaleY(-1)",
+              },
+            }}
+          >
+            {/* Encabezado */}
+            <Box sx={{ textAlign: "center", mb: 1 }}>
+              <Typography
+                sx={{ fontWeight: 800, letterSpacing: ".08em" }}
+                variant="subtitle1"
+              >
+                {(establishment_name || "COMERCIO").toUpperCase()}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {category || "Ticket"} · {ticket_date ? fmtDate(ticket_date) : "—"}
+              </Typography>
+            </Box>
+
+            {/* Divisor punteado */}
+            <Box
+              sx={{
+                my: 1,
+                height: 1,
+                background:
+                  "repeating-linear-gradient(90deg, rgba(0,0,0,.35), rgba(0,0,0,.35) 6px, transparent 6px, transparent 12px)",
+              }}
             />
 
-            <Divider />
-
-            <CardContent>
-              {/* Papel térmico del ticket */}
-              <Box
-                sx={{
-                  position: "relative",
-                  mx: "auto",
-                  maxWidth: 520,
-                  bgcolor: "#fff",
-                  color: "text.primary",
-                  borderRadius: 1,
-                  boxShadow: "0 1px 0 rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.03)",
-                  p: 2,
-                  fontFamily:
-                    'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-                  letterSpacing: ".01em",
-                  // Dientes tipo “perforación”
-                  "&::before, &::after": {
-                    content: '""',
-                    position: "absolute",
-                    left: 0,
-                    right: 0,
-                    height: 10,
-                    background:
-                      "radial-gradient(circle at 10px 10px, transparent 10px, #fff 10px) top left / 20px 20px repeat-x",
-                  },
-                  "&::before": { top: -10 },
-                  "&::after": {
-                    bottom: -10,
-                    transform: "scaleY(-1)",
-                  },
-                }}
-              >
-                {/* Encabezado */}
-                <Box sx={{ textAlign: "center", mb: 1 }}>
-                  <Typography
-                    sx={{ fontWeight: 800, letterSpacing: ".08em" }}
-                    variant="subtitle1"
+            {/* Lista de ítems estilo ticket */}
+            {items?.length > 0 ? (
+              <Box sx={{ display: "grid", rowGap: 0.5 }}>
+                {items.map((it, idx) => (
+                  <Box
+                    key={idx}
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr auto auto",
+                      columnGap: 1,
+                      alignItems: "baseline",
+                    }}
                   >
-                    {(place || "COMERCIO").toUpperCase()}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {category || "Ticket"} · {uploadedAt ? fmtDate(uploadedAt) : "—"}
-                  </Typography>
-                </Box>
-
-                {/* Divisor punteado */}
-                <Box
-                  sx={{
-                    my: 1,
-                    height: 1,
-                    background:
-                      "repeating-linear-gradient(90deg, rgba(0,0,0,.35), rgba(0,0,0,.35) 6px, transparent 6px, transparent 12px)",
-                  }}
-                />
-
-                {/* Lista de ítems estilo ticket */}
-                {items?.length > 0 ? (
-                  <Box sx={{ display: "grid", rowGap: 0.5 }}>
-                    {items.map((it, idx) => (
-                      <Box
-                        key={idx}
-                        sx={{
-                          display: "grid",
-                          gridTemplateColumns: "1fr auto auto",
-                          columnGap: 1,
-                          alignItems: "baseline",
-                        }}
-                      >
-                        <Typography variant="body2" noWrap title={it.name}>
-                          {it.name || "—"}
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          sx={{ textAlign: "right", minWidth: 46 }}
-                          color="text.secondary"
-                        >
-                          {it.qty != null ? `x${it.qty}` : ""}
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          sx={{ textAlign: "right", minWidth: 80, fontWeight: 600 }}
-                        >
-                          {it.total != null ? fmtMoney(it.total, currency) : "—"}
-                        </Typography>
-                      </Box>
-                    ))}
-                  </Box>
-                ) : (
-                  <Typography variant="body2" color="text.secondary">
-                    (Sin ítems detectados)
-                  </Typography>
-                )}
-
-                {/* Divisor punteado */}
-                <Box
-                  sx={{
-                    my: 1,
-                    height: 1,
-                    background:
-                      "repeating-linear-gradient(90deg, rgba(0,0,0,.35), rgba(0,0,0,.35) 6px, transparent 6px, transparent 12px)",
-                  }}
-                />
-
-                {/* Subtotales / impuestos / propina */}
-                <Box sx={{ display: "grid", rowGap: 0.5 }}>
-                  <Row label="SUBTOTAL" value={subtotal != null ? fmtMoney(subtotal, currency) : "—"} />
-                  <Row label="IMPUESTOS" value={taxes != null ? fmtMoney(taxes, currency) : "—"} />
-                  <Row label="PROPINA" value={tip != null ? fmtMoney(tip, currency) : "—"} />
-                </Box>
-
-                {/* Total y total con propina */}
-                <Box
-                  sx={{
-                    my: 1,
-                    height: 1,
-                    background:
-                      "repeating-linear-gradient(90deg, rgba(0,0,0,.35), rgba(0,0,0,.35) 6px, transparent 6px, transparent 12px)",
-                  }}
-                />
-                <Row
-                  label="TOTAL"
-                  value={total != null ? fmtMoney(total, currency) : "—"}
-                  strong
-                />
-                {totalWithTip != null && totalWithTip > total && (
-                  <Row
-                    label="TOTAL C/ PROP."
-                    value={fmtMoney(totalWithTip, currency)}
-                    strong
-                  />
-                )}
-
-                {/* Pago, participantes, OCR */}
-                <Box sx={{ mt: 1.5 }}>
-                  <Typography variant="caption" color="text.secondary">
-                    PAGO: {paymentMethod || "—"}
-                  </Typography>
-                  <br />
-                  <Typography variant="caption" color="text.secondary">
-                    PARTICIPANTES:{" "}
-                    {participants?.length
-                      ? participants.map((p) => p.name).join(", ")
-                      : "—"}
-                  </Typography>
-                  {typeof ocrConfidence === "number" && (
-                    <>
-                      <br />
-                      <Typography variant="caption" color="text.secondary">
-                        CONF. OCR: {(ocrConfidence * 100).toFixed(0)}%
-                      </Typography>
-                    </>
-                  )}
-                </Box>
-
-                {/* Notas (opcional) */}
-                {notes && (
-                  <>
-                    <Box
-                      sx={{
-                        my: 1,
-                        height: 1,
-                        background:
-                          "repeating-linear-gradient(90deg, rgba(0,0,0,.35), rgba(0,0,0,.35) 6px, transparent 6px, transparent 12px)",
-                      }}
-                    />
-                    <Typography variant="caption" sx={{ whiteSpace: "pre-wrap" }}>
-                      NOTAS: {notes}
+                    <Typography variant="body2" noWrap title={it.name}>
+                      {it.name || "—"}
                     </Typography>
-                  </>
-                )}
+                    <Typography
+                      variant="body2"
+                      sx={{ textAlign: "right", minWidth: 46 }}
+                      color="text.secondary"
+                    >
+                      {it.qty != null ? `x${it.qty}` : ""}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ textAlign: "right", minWidth: 80, fontWeight: 600 }}
+                    >
+                      {it.total_price != null ? fmtMoney(it.total_price, currency) : "—"}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                (Sin ítems detectados)
+              </Typography>
+            )}
 
-                {/* Barcode simulado */}
-                <Box
-                  sx={{
-                    mt: 2,
-                    height: 44,
-                    background:
-                      "repeating-linear-gradient(90deg, #111 0 2px, transparent 2px 4px)",
-                    opacity: 0.6,
-                  }}
-                />
-                <Typography
-                  variant="caption"
-                  sx={{ display: "block", textAlign: "center", mt: 0.5, letterSpacing: "0.25em" }}
-                >
-                  7  3  9  4  1  2  8  5
-                </Typography>
+            {/* Divisor punteado */}
+            <Box
+              sx={{
+                my: 1,
+                height: 1,
+                background:
+                  "repeating-linear-gradient(90deg, rgba(0,0,0,.35), rgba(0,0,0,.35) 6px, transparent 6px, transparent 12px)",
+              }}
+            />
 
-                {/* Footer mini (RFC ficticio / dirección) */}
-                <Box sx={{ textAlign: "center", mt: 1 }}>
-                  <Typography variant="caption" color="text.secondary">
-                    RFC: XAXX010101000
-                  </Typography>
+            {/* Subtotales / impuestos / propina */}
+            <Box sx={{ display: "grid", rowGap: 0.5 }}>
+              <Row label="SUBTOTAL" value={subtotal != null ? fmtMoney(subtotal, currency) : "—"} />
+              <Row label="IMPUESTOS" value={taxes != null ? fmtMoney(taxes, currency) : "—"} />
+              <Row label="PROPINA" value={tip != null ? fmtMoney(tip, currency) : "—"} />
+            </Box>
+
+            {/* Total y total con propina */}
+            <Box
+              sx={{
+                my: 1,
+                height: 1,
+                background:
+                  "repeating-linear-gradient(90deg, rgba(0,0,0,.35), rgba(0,0,0,.35) 6px, transparent 6px, transparent 12px)",
+              }}
+            />
+            <Row
+              label="TOTAL"
+              value={total_amount != null ? fmtMoney(total_amount, currency) : "—"}
+              strong
+            />
+            {totalWithTip != null && totalWithTip > total_amount && (
+              <Row
+                label="TOTAL C/ PROP."
+                value={fmtMoney(totalWithTip, currency)}
+                strong
+              />
+            )}
+
+            {/* Pago, participantes, OCR */}
+            <Box sx={{ mt: 1.5 }}>
+              <Typography variant="caption" color="text.secondary">
+                PAGO: {paymentMethod || "—"}
+              </Typography>
+              <br />
+              <Typography variant="caption" color="text.secondary">
+                PARTICIPANTES:{" "}
+                {participants?.length
+                  ? participants.map((p) => p.name).join(", ")
+                  : "—"}
+              </Typography>
+              {typeof ocrConfidence === "number" && (
+                <>
                   <br />
                   <Typography variant="caption" color="text.secondary">
-                    Gracias por su compra
+                    CONF. OCR: {(ocrConfidence * 100).toFixed(0)}%
                   </Typography>
-                </Box>
-              </Box>
-            </CardContent>
+                </>
+              )}
+            </Box>
 
-            <CardActions sx={{ p: 2, pt: 0, justifyContent: "space-between" }}>
-              <Stack direction="row" spacing={1}>
-                <Tooltip title="Editar">
-                  <IconButton onClick={onEdit}><EditIcon /></IconButton>
-                </Tooltip>
-                <Tooltip title="Compartir">
-                  <IconButton onClick={onShare}><ShareIcon /></IconButton>
-                </Tooltip>
-              </Stack>
-              <Button variant="contained" onClick={onSplit}>
-                Dividir gastos
-              </Button>
-            </CardActions>
-          </Card>
-  );
+            {/* Notas (opcional) */}
+            {notes && (
+              <>
+                <Box
+                  sx={{
+                    my: 1,
+                    height: 1,
+                    background:
+                      "repeating-linear-gradient(90deg, rgba(0,0,0,.35), rgba(0,0,0,.35) 6px, transparent 6px, transparent 12px)",
+                  }}
+                />
+                <Typography variant="caption" sx={{ whiteSpace: "pre-wrap" }}>
+                  NOTAS: {notes}
+                </Typography>
+              </>
+            )}
+
+            {/* Barcode simulado */}
+            <Box
+              sx={{
+                mt: 2,
+                height: 44,
+                background:
+                  "repeating-linear-gradient(90deg, #111 0 2px, transparent 2px 4px)",
+                opacity: 0.6,
+              }}
+            />
+            <Typography
+              variant="caption"
+              sx={{ display: "block", textAlign: "center", mt: 0.5, letterSpacing: "0.25em" }}
+            >
+              7  3  9  4  1  2  8  5
+            </Typography>
+
+            {/* Footer mini (RFC ficticio / dirección) */}
+            <Box sx={{ textAlign: "center", mt: 1 }}>
+              <Typography variant="caption" color="text.secondary">
+                RFC: XAXX010101000
+              </Typography>
+              <br />
+              <Typography variant="caption" color="text.secondary">
+                Gracias por su compra
+              </Typography>
+            </Box>
+          </Box>
+        </CardContent>
+
+        <CardActions sx={{ p: 2, pt: 0, justifyContent: "space-between" }}>
+          <Stack direction="row" spacing={1}>
+            <Tooltip title="Editar">
+              <IconButton onClick={onEdit}><EditIcon /></IconButton>
+            </Tooltip>
+            <Tooltip title="Compartir">
+              <IconButton onClick={onShare}><ShareIcon /></IconButton>
+            </Tooltip>
+          </Stack>
+          <Button variant="contained" onClick={onSplit}>
+            Dividir gastos
+          </Button>
+        </CardActions>
+  </Card>
+  </Stack>;
 }
 
 /* Sub-componente para filas de totales alineadas tipo ticket */

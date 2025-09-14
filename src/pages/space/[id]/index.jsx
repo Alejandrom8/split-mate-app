@@ -1,9 +1,9 @@
 "use client";
 import * as React from "react";
 import {
-  AppBar, Toolbar, Typography, IconButton, Avatar, Menu, MenuItem, ListItemIcon, Divider,
+  Typography, Avatar,
   Box, Container, Grid, Stack, Button, Chip, Card, CardContent, CardHeader,
-  Tabs, Tab, Tooltip, LinearProgress, List, ListItem, ListItemText, Badge, Breadcrumbs
+  Tabs, Tab, List, ListItem, ListItemText, Breadcrumbs
 } from "@mui/material";
 import PersonAddAlt1 from "@mui/icons-material/PersonAddAlt1";
 import Paid from "@mui/icons-material/Paid";
@@ -14,7 +14,6 @@ import Info from "@mui/icons-material/Info";
 import Add from "@mui/icons-material/Add";
 import CheckCircle from "@mui/icons-material/CheckCircle";
 import {withAuth} from "@/shared/withAuth";
-import nookies from "nookies";
 import v1Manager from "@/shared/v1Manager";
 import ShareDialog from "@/components/Spaces/ShareDialog";
 import {useState} from "react";
@@ -25,45 +24,17 @@ import {useRouter} from "next/router";
 import CreateSpaceSpeedDial from "@/components/App/CreateSpeedDial";
 import Head from "next/head";
 import HomeIcon from '@mui/icons-material/Home';
+import TicketCard from "@/components/Tickets/TicketCard";
+import {fmtMoney} from "@/shared/utils";
+import EmptySection from "@/components/App/EmptySection";
 
 // ---------- Helpers ----------
-const fmtMoney = (n, currency = "MXN") =>
-  new Intl.NumberFormat("es-MX", { style: "currency", currency }).format(n);
-
-// Sugerencia simple de pagos: compensa positivos con negativos (greedy)
-function suggestPayments(balances) {
-  const debtors = [];
-  const creditors = [];
-  balances.forEach((b) => {
-    if (b.net < -0.01) debtors.push({ ...b, amount: -b.net });
-    if (b.net > 0.01) creditors.push({ ...b, amount: b.net });
-  });
-  debtors.sort((a, b) => b.amount - a.amount);
-  creditors.sort((a, b) => b.amount - a.amount);
-  const tx = [];
-  let i = 0, j = 0;
-  while (i < debtors.length && j < creditors.length) {
-    const pay = Math.min(debtors[i].amount, creditors[j].amount);
-    tx.push({ from: debtors[i].name, to: creditors[j].name, amount: pay });
-    debtors[i].amount -= pay; creditors[j].amount -= pay;
-    if (debtors[i].amount <= 0.01) i++;
-    if (creditors[j].amount <= 0.01) j++;
-  }
-  return tx;
-}
-
 // ---------- Mock data ----------
 const mockMembers = [
   { id: "u1", name: "Alex", avatar: "https://i.pravatar.cc/64?img=68" },
   { id: "u2", name: "Maggy", avatar: "https://i.pravatar.cc/64?img=5" },
   { id: "u3", name: "Roni", avatar: "https://i.pravatar.cc/64?img=12" },
   { id: "u4", name: "Lis", avatar: "https://i.pravatar.cc/64?img=23" },
-];
-
-const mockTickets = [
-  { id: "t1", place: "Taquería El Güero", total: 537.2, status: "ready", itemsCount: 6, participantsCount: 3, uploadedAt: "2025-08-28T20:14:00Z" },
-  { id: "t2", place: "La Parrilla Mexicana", total: 1256.8, status: "processing", itemsCount: 12, participantsCount: 5, uploadedAt: "2025-08-22T19:40:00Z" },
-  { id: "t3", place: "Uber Eats", total: 371.2, status: "pending", itemsCount: 6, participantsCount: 3, uploadedAt: "2025-08-25T21:10:00Z" },
 ];
 
 const mockBalances = [
@@ -91,43 +62,6 @@ function SummaryStat({ icon, label, value, hint, color = "primary.main" }) {
   );
 }
 
-function TicketRow({ ticket, selected, onSelect }) {
-  const statusMap = {
-    ready: { label: "OCR listo", color: "success" },
-    processing: { label: "Procesando", color: "warning" },
-    pending: { label: "Pendiente", color: "warning" },
-    error: { label: "Error", color: "error" },
-  };
-  return (
-    <Card
-      variant="outlined"
-      onClick={() => onSelect?.(ticket)}
-      sx={{
-        cursor: "pointer",
-        borderColor: selected ? "primary.main" : "divider",
-        "&:hover": { boxShadow: 4 },
-      }}
-    >
-      <CardContent>
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Stack spacing={0.5}>
-            <Typography variant="subtitle1" fontWeight={700}>{ticket.place}</Typography>
-            <Typography variant="body2" color="text.secondary">
-              {new Date(ticket.uploadedAt).toLocaleString("es-MX")}
-            </Typography>
-            <Stack direction="row" spacing={1}>
-              <Chip size="small" color={statusMap[ticket.status]?.color || "default"} label={statusMap[ticket.status]?.label || ticket.status} />
-              <Chip size="small" variant="outlined" label={`${ticket.itemsCount} ítems`} />
-              <Chip size="small" variant="outlined" label={`${ticket.participantsCount} amigos`} />
-            </Stack>
-          </Stack>
-          <Typography variant="h6" fontWeight={800}>{fmtMoney(ticket.total)}</Typography>
-        </Stack>
-      </CardContent>
-    </Card>
-  );
-}
-
 function BalanceBoard({ balances }) {
   return (
     <Card variant="outlined">
@@ -144,31 +78,6 @@ function BalanceBoard({ balances }) {
             </ListItem>
           ))}
         </List>
-      </CardContent>
-    </Card>
-  );
-}
-
-function PaymentsSuggestion({ balances }) {
-  const tx = suggestPayments(balances);
-  return (
-    <Card variant="outlined">
-      <CardHeader title="Sugerencia de pagos" subheader="Minimiza transferencias" />
-      <CardContent>
-        {tx.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">Todo está saldado 🎉</Typography>
-        ) : (
-          <List dense>
-            {tx.map((t, i) => (
-              <ListItem key={i}>
-                <ListItemText
-                  primary={<Typography><b>{t.from}</b> → <b>{t.to}</b></Typography>}
-                  secondary={fmtMoney(t.amount)}
-                />
-              </ListItem>
-            ))}
-          </List>
-        )}
       </CardContent>
     </Card>
   );
@@ -191,39 +100,39 @@ function AvatarGroupTight({ members }) {
 }
 
 // ---------- Página Detalle de espacio ----------
-function SpaceDetailPage({ initialData }) {
+function SpaceDetailPage({ authHeader, initialData, initialEventTickets }) {
   const [tab, setTab] = React.useState(0);
-  const [tickets, setTickets] = React.useState(mockTickets);
+  const [tickets, setTickets] = React.useState(initialEventTickets);
   const [members, setMembers] = React.useState(mockMembers);
   const [balances, setBalances] = React.useState(mockBalances);
   const [selectedTicketId, setSelectedTicketId] = React.useState(tickets[0]?.id || null);
   const [shareOpen, setShareOpen] = useState(false);
   const router = useRouter();
 
-  const selectedTicket = React.useMemo(
-    () => tickets.find((t) => t.id === selectedTicketId) || null,
-    [tickets, selectedTicketId]
-  );
+  console.log('Initial Data:', initialData);
 
-  // Menú usuario (header)
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const menuOpen = Boolean(anchorEl);
-  const openMenu = (e) => setAnchorEl(e.currentTarget);
-  const closeMenu = () => setAnchorEl(null);
+  const handleTicketUploaded = (newTicket) => {
+    console.log('New ticket uploaded:', newTicket);
+  };
 
   return (
     <>
       <Head>
-        <title>Split Mate | {initialData?.name}</title>
+        <title>{`Split Mate | ${initialData?.name}`}</title>
         <meta name="description" content="Split Mate - separa gastos con tus amigos" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
+
       <CreateSpaceSpeedDial
+        authHeader={authHeader}
+        spaceId={initialData?.id}
         onSpaceCreated={() => router.push('/')}
+        onTicketUploaded={handleTicketUploaded}
       />
 
       <Container sx={{ py: 3, minHeight: '100vh' }}>
+        {/* Navegación */}
         <Breadcrumbs sx={{ py: 2 }} separator={<NavigateNextIcon fontSize="small" />}>
           <Link color="primary" href="/" component={NextLink} sx={{ display: 'flex', alignItems: 'center' }}>
             <HomeIcon fontSize={'small'} sx={{ mr: 1 }}/>
@@ -233,6 +142,7 @@ function SpaceDetailPage({ initialData }) {
             {initialData?.name}
           </Typography>
         </Breadcrumbs>
+
         {/* Header del espacio */}
         <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ xs: "flex-start", sm: "center" }} justifyContent="space-between" sx={{ mb: 2 }}>
           <Stack spacing={0.5}>
@@ -278,48 +188,20 @@ function SpaceDetailPage({ initialData }) {
           <Tab icon={<TimelineIcon />} iconPosition="start" label="Actividad" />
         </Tabs>
 
+        {/* Tab 1 - Tickets */}
         {tab === 0 && (
-          <Grid container spacing={3} alignItems="flex-start">
-            {/* Izquierda: listado */}
-            <Grid item xs={12} md={8}>
-              <Grid container spacing={2}>
-                {tickets.map((t) => (
-                  <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={t.id}>
-                    <TicketRow ticket={t} selected={t.id === selectedTicketId} onSelect={(tk) => setSelectedTicketId(tk.id)} />
-                  </Grid>
-                ))}
+          <Grid container spacing={2}>
+            {
+              tickets.length === 0 && <EmptySection />
+            }
+            {tickets?.length > 0 && tickets.map((t) => (
+              <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={t.id}>
+                <TicketCard
+                  ticket={t}
+                  onSelect={(tk) => router.push(`/ticket/${tk.id}`)}
+                />
               </Grid>
-            </Grid>
-            {/* Derecha: detalle(sticky). Reemplaza por tu <TicketDetail /> si ya lo tienes */}
-            {/*<Grid item xs={12} md={4} sx={{ minWidth: 0 }}>*/}
-            {/*  <Box sx={{ position: { md: "sticky" }, top: { md: 88 } }}>*/}
-            {/*    {selectedTicket ? (*/}
-            {/*      <Card variant="outlined">*/}
-            {/*        <CardHeader title={selectedTicket.place} subheader={`Total: ${fmtMoney(selectedTicket.total)}`} />*/}
-            {/*        <CardContent>*/}
-            {/*          <LinearProgress variant="determinate" value={selectedTicket.status === "ready" ? 100 : selectedTicket.status === "processing" ? 60 : 20} sx={{ mb: 2 }} />*/}
-            {/*          <Stack direction="row" spacing={1} sx={{ mb: 1 }}>*/}
-            {/*            <Chip size="small" label={`${selectedTicket.itemsCount} ítems`} />*/}
-            {/*            <Chip size="small" label={`${selectedTicket.participantsCount} amigos`} />*/}
-            {/*          </Stack>*/}
-            {/*          <Typography variant="body2" color="text.secondary">*/}
-            {/*            Subido: {new Date(selectedTicket.uploadedAt).toLocaleString("es-MX")}*/}
-            {/*          </Typography>*/}
-            {/*          <Box sx={{ mt: 2 }}>*/}
-            {/*            <Button fullWidth variant="contained">Abrir ticket</Button>*/}
-            {/*          </Box>*/}
-            {/*        </CardContent>*/}
-            {/*      </Card>*/}
-            {/*    ) : (*/}
-            {/*      <Card variant="outlined">*/}
-            {/*        <CardContent>*/}
-            {/*          <Typography variant="h6">Selecciona un ticket</Typography>*/}
-            {/*          <Typography variant="body2" color="text.secondary">El detalle aparecerá aquí</Typography>*/}
-            {/*        </CardContent>*/}
-            {/*      </Card>*/}
-            {/*    )}*/}
-            {/*  </Box>*/}
-            {/*</Grid>*/}
+            ))}
           </Grid>
         )}
 
@@ -346,7 +228,7 @@ function SpaceDetailPage({ initialData }) {
                   <Grid container spacing={2}>
                     {tickets.map((t) => (
                       <Grid item xs={12} key={t.id}>
-                        <TicketRow ticket={t} selected={t.id === selectedTicketId} onSelect={(tk) => setSelectedTicketId(tk.id)} />
+                        <TicketCard ticket={t} selected={t.id === selectedTicketId} onSelect={(tk) => setSelectedTicketId(tk.id)} />
                       </Grid>
                     ))}
                   </Grid>
@@ -420,15 +302,21 @@ export const getServerSideProps = withAuth(async ({ authHeader, ...ctx }) => {
       return { notFound: true };
     }
 
-    const upstream = await v1Manager.get(`/v1/events/${id}`, {}, authHeader);
+    const initialEventData = await v1Manager.get(`/v1/events/${id}`, {}, authHeader);
+    const initialEventTickets = await v1Manager.get(`/v1/api/v1/tickets/events/${id}/tickets`, {}, authHeader);
+
     return {
       props: {
-        initialData: upstream.data?.data,
+        authHeader,
+        initialData: initialEventData.data?.data,
+        initialEventTickets: initialEventTickets.data?.data?.tickets,
       }
     };
   } catch (error) {
     console.log(error);
-    return {};
+    return {
+      notFound: true,
+    };
   }
 });
 

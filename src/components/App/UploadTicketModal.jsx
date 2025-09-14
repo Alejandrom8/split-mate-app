@@ -9,26 +9,24 @@ import {
   TextField,
   Stack,
   Button,
-  CircularProgress, MenuItem,
+  CircularProgress, MenuItem, Box,
 } from '@mui/material';
 import clientManager from "@/shared/clientManager";
 import {useSnackbar} from "notistack";
 import TicketDropzone from "@/components/Tickets/TicketDropzone";
-
-// Ejemplo de datos:
-const spaces = [
-  { id: "s1", name: "Casa de Alex" },
-  { id: "s2", name: "Oficina Jalo" },
-  { id: "s3", name: "Amigos CDMX" },
-];
+import SpaceSelector from "@/components/Form/SpaceSelector";
+import FileCard from "@/components/Form/FIleCard";
+import v1Manager from "@/shared/v1Manager";
 
 export default function UploadTicketModal({
-                                           open,
-                                           onClose,
-                                           onCreated, // (space) => void
-                                           title = 'Sube tus tickets',
-                                         }) {
-  const [spaceId, setSpaceId] = useState("");
+   _authHeader,
+   _spaceId,
+   open,
+   onClose,
+   onCreated, // (space) => void
+   title = 'Sube un ticket',
+ }) {
+  const [spaceId, setSpaceId] = useState(_spaceId);
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = React.useState(false);
   const { enqueueSnackbar } = useSnackbar();
@@ -39,14 +37,31 @@ export default function UploadTicketModal({
 
   const handleSubmit = async (e) => {
     e?.preventDefault();
-    if (!spaceName.trim()) return; // simple validación
     setLoading(true);
     try {
+      const form = new FormData();
+      form.append('file', files[0]);
+      form.append('event_id', spaceId);
 
+      const res = await v1Manager.post('/v1/api/v1/tickets/upload/rest', form, {
+        headers: {
+          ..._authHeader.headers,
+          'Content-Type': 'multipart/form-data',
+        }
+      });
+
+      console.log('UPLOAD RESULT', res);
+
+      if (!res?.data.success) {
+        throw new Error(`Error al subir: ${res.status}`);
+      }
+
+      onCreated?.(res?.data?.data);
+      enqueueSnackbar('Ticket subido con éxito', { variant: 'success' });
     } catch (err) {
       // Puedes mostrar un snackbar desde el padre si gustas
       console.error('[CreateSpaceModal] Error:', err);
-      enqueueSnackbar('Hubo un error al crear el espacio', { variant: 'error' });
+      enqueueSnackbar('Hubo un error al subir el ticket', { variant: 'error' });
     } finally {
       setLoading(false);
     }
@@ -64,35 +79,34 @@ export default function UploadTicketModal({
           <CardHeader title={title} />
           <CardContent>
             <Stack spacing={2}>
-              <TextField
-                select
-                value={spaceId}
-                onChange={(e) => setSpaceId(e.target.value)}
-                variant="outlined"
-                name="spaceId"
-                size="small"
-                disabled={loading}
-                required
-                fullWidth
-                SelectProps={{ displayEmpty: true }}
-              >
-                <MenuItem value="">
-                  <em>Selecciona el espacio</em>
-                </MenuItem>
-                {spaces.map((s) => (
-                  <MenuItem key={s.id} value={s.id}>
-                    {s.name}
-                  </MenuItem>
-                ))}
-              </TextField>
+              {
+                !_spaceId && (
+                  <SpaceSelector
+                    onChange={(_sid) => setSpaceId(_sid)}
+                    value={spaceId}
+                    label="Espacio"
+                    placeholder="Selecciona el espacio"
+                  />
+                )
+              }
               <TicketDropzone
                 onFiles={(accepted, rejected) => {
+                  setFiles(accepted);
                   console.log('Aceptados:', accepted);
                   console.log('Rechazados:', rejected);
                 }}
-                maxFiles={5}
-                // accept={{ 'image/*': [] }} // ejemplo para solo imágenes
+                maxFiles={1}
+                accept={{ 'image/*': [] }}
               />
+              <Box>
+                {files.map((f) => (
+                  <FileCard
+                    key={f.path}
+                    file={f}
+                    onDelete={(file) => setFiles([])}
+                  />
+                ))}
+              </Box>
             </Stack>
           </CardContent>
           <CardActions sx={{ px: 2, pb: 2, pt: 0 }}>
@@ -104,7 +118,7 @@ export default function UploadTicketModal({
               disabled={loading}
               startIcon={loading ? <CircularProgress size={16} color="inherit" /> : null}
             >
-              {loading ? 'Creando...' : 'Crear'}
+              {loading ? 'Subiendo...' : 'Subir'}
             </Button>
             <Button
               variant="outlined"

@@ -28,7 +28,7 @@ export default function App(props) {
             autoHideDuration={3000}
             anchorOrigin={{
               vertical: "bottom",
-              horizontal: "right",
+              horizontal: "left",
             }}
           >
             <SplitMateAppBar />

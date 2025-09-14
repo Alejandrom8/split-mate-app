@@ -38,11 +38,11 @@ export default function TicketDropzone({
     <Box
       {...getRootProps()}
       role="button"
-      aria-label="Sube tus tickets"
+      aria-label="Sube tu ticket"
       sx={{
         width: '100%',
         p: 4,
-        borderRadius: 2,
+        borderRadius: 1,
         textAlign: 'center',
         cursor: disabled ? 'not-allowed' : 'pointer',
         border: '2px dashed',
@@ -50,7 +50,7 @@ export default function TicketDropzone({
           ? 'error.main'
           : isFocused || isDragActive
             ? 'primary.main'
-            : 'grey.400',
+            : 'primary.main',
         bgcolor: isDragActive ? 'grey.50' : 'transparent',
         color: 'text.secondary',
         transition: 'border-color .2s ease, background-color .2s ease',

@@ -20,6 +20,7 @@ import useDelayedQuery from "@/hooks/useDelayedQuery";
 import { useSnackbar } from "notistack";
 import clientManager from "@/shared/clientManager";
 import CancelIcon from '@mui/icons-material/Cancel';
+import EmptySection from "@/components/App/EmptySection";
 
 function Home({ initialSpaces }) {
   const [spaces, setSpaces] = useState(initialSpaces?.events);
@@ -117,11 +118,7 @@ function Home({ initialSpaces }) {
             </Box>
           }
           {
-            !spaces?.length && !loading && (
-              <Box sx={{ width: '100%', height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <img src={'/empty-spaces.svg'} width={'300px'} />
-              </Box>
-            )
+            !spaces?.length && !loading && <EmptySection />
           }
           {
             spaces?.length > 0 && !loading && (
