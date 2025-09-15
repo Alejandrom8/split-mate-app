@@ -1,17 +1,31 @@
 "use client";
 import * as React from "react";
 import {
-  Typography, Avatar,
-  Box, Container, Grid, Stack, Button, Chip, Card, CardContent, CardHeader,
-  Tabs, Tab, List, ListItem, ListItemText, Breadcrumbs, useTheme, useMediaQuery
+  Typography,
+  Avatar,
+  Box,
+  Container,
+  Grid,
+  Stack,
+  Button,
+  Chip,
+  Card,
+  CardContent,
+  CardHeader,
+  Tabs,
+  Tab,
+  List,
+  ListItem,
+  ListItemText,
+  Breadcrumbs,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import PersonAddAlt1 from "@mui/icons-material/PersonAddAlt1";
 import Paid from "@mui/icons-material/Paid";
 import ReceiptLong from "@mui/icons-material/ReceiptLong";
 import People from "@mui/icons-material/People";
-import TimelineIcon from "@mui/icons-material/Timeline";
 import Info from "@mui/icons-material/Info";
-import Add from "@mui/icons-material/Add";
 import CheckCircle from "@mui/icons-material/CheckCircle";
 import {withAuth} from "@/shared/withAuth";
 import v1Manager from "@/shared/v1Manager";
@@ -27,6 +41,11 @@ import HomeIcon from '@mui/icons-material/Home';
 import TicketCard from "@/components/Tickets/TicketCard";
 import {fmtMoney} from "@/shared/utils";
 import EmptySection from "@/components/App/EmptySection";
+import {useSpeedDial} from "@/context/SpeedDialContext";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import {useSnackbar} from "notistack";
+import clientManager from "@/shared/clientManager";
+import LoadingSection from "@/components/App/LoadingSection";
 
 // ---------- Helpers ----------
 // ---------- Mock data ----------
@@ -108,9 +127,27 @@ function SpaceDetailPage({ authHeader, initialData, initialEventTickets }) {
   const [selectedTicketId, setSelectedTicketId] = React.useState(tickets[0]?.id || null);
   const [shareOpen, setShareOpen] = useState(false);
   const router = useRouter();
+  const { onCloseUploadTicket } = useSpeedDial();
+  const [loading, setLoading] = useState(false);
+  const theme = useTheme();
+  const isSm = useMediaQuery(theme.breakpoints.down('sm'));
+  const { enqueueSnackbar } = useSnackbar();
 
   const handleTicketUploaded = (newTicket) => {
-    console.log('New ticket uploaded:', newTicket);
+    onCloseUploadTicket();
+    router.push(`/ticket/${newTicket.id}`);
+  };
+
+  const handleDeleteCompleted = async () => {
+    setLoading(true);
+    try {
+      const result = await clientManager.get(`/space/${initialData?.id}/tickets`);
+      setTickets(result?.data?.tickets);
+    } catch (error) {
+      enqueueSnackbar('Error al cargar tickets', { variant: 'error' })
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -176,72 +213,67 @@ function SpaceDetailPage({ authHeader, initialData, initialEventTickets }) {
         {/* Tabs */}
         <Tabs
           value={tab}
-          onChange={(_, v) => setTab(v)} sx={{ mb: 2 }}
+          onChange={(_, v) => setTab(v)}
           scrollButtons
           allowScrollButtonsMobile
+          variant={isSm ? 'fullWidth' : 'standard'}
+          sx={{ mb: 2, borderBottom: '1px solid rgba(0, 0, 0, 0.1)' }}
         >
           <Tab icon={<ReceiptLong />} iconPosition="start" label="Tickets" />
-          <Tab icon={<Info />} iconPosition="start" label="Resumen" />
+          <Tab icon={<Info />} iconPosition="start" label="Balance" />
           <Tab icon={<People />} iconPosition="start" label="Miembros" />
-          <Tab icon={<TimelineIcon />} iconPosition="start" label="Actividad" />
+          {/*<Tab icon={<TimelineIcon />} iconPosition="start" label="Actividad" />*/}
         </Tabs>
 
         {/* Tab 1 - Tickets */}
         {tab === 0 && (
-          <Grid container spacing={2} sx={{ pb: 10 }}>
+          <>
             {
-              tickets.length === 0 && <EmptySection />
+              loading && <LoadingSection />
             }
-            {tickets?.length > 0 && tickets.map((t) => (
-              <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={t.id}>
-                <TicketCard
-                  ticket={t}
-                  onSelect={(tk) => router.push(`/ticket/${tk.id}`)}
-                />
-              </Grid>
-            ))}
-          </Grid>
+            {
+              !loading && tickets.length === 0 && <EmptySection />
+            }
+            {
+              !loading && tickets.length > 0 && (
+                <Grid container spacing={2} sx={{ pb: 10 }}>
+                  {tickets?.length > 0 && tickets.map((t) => (
+                    <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={t.id}>
+                      <TicketCard
+                        ticket={t}
+                        onSelect={(tk) => router.push(`/ticket/${tk.id}`)}
+                        onDeleteCompleted={handleDeleteCompleted}
+                      />
+                    </Grid>
+                  ))}
+                </Grid>
+              )
+            }
+          </>
         )}
 
+        {/* Tab 2 - Balance */}
         {tab === 1 && (
-          <Grid container spacing={3} alignItems="flex-start">
-            {/* KPIs */}
-            <Grid item xs={12} md={8}>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6} md={4}>
-                  <SummaryStat icon={<Paid />} label="Total gastado" value={fmtMoney(tickets.reduce((a, t) => a + t.total, 0))} />
-                </Grid>
-                <Grid item xs={12} sm={6} md={4}>
-                  <SummaryStat icon={<ReceiptLong />} label="Tickets" value={tickets.length} hint="2 pendientes de asignar" color="warning.main" />
-                </Grid>
-                <Grid item xs={12} sm={6} md={4}>
-                  <SummaryStat icon={<CheckCircle />} label="Asignación" value="78%" hint="Ítems asignados" color="success.main" />
-                </Grid>
-              </Grid>
-
-              {/* Lista rápida de tickets */}
-              <Card variant="outlined" sx={{ mt: 2 }}>
-                <CardHeader title="Tickets recientes" action={<Button size="small" startIcon={<Add />}>Subir ticket</Button>} />
-                <CardContent>
-                  <Grid container spacing={2}>
-                    {tickets.map((t) => (
-                      <Grid item xs={12} key={t.id}>
-                        <TicketCard ticket={t} selected={t.id === selectedTicketId} onSelect={(tk) => setSelectedTicketId(tk.id)} />
-                      </Grid>
-                    ))}
-                  </Grid>
-                </CardContent>
-              </Card>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, sm: 6, md: 4, }}>
+              <SummaryStat icon={<Paid />} label="Total gastado" value={fmtMoney(initialData?.total_amount)} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 4, }}>
+              <SummaryStat icon={<ReceiptLong />} label="Tickets" value={initialData?.tickets_count} hint="2 pendientes de confirmar" color="warning.main" />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 4, }}>
+              <SummaryStat icon={<CheckCircle />} label="Asignación" value="78%" hint="Ítems asignados" color="success.main" />
             </Grid>
           </Grid>
         )}
 
+        {/* Tab 3 - Miembros */}
         {tab === 2 && (
           <Card variant="outlined">
             <CardHeader title="Miembros" action={<Button variant="outlined" startIcon={<PersonAddAlt1 />}>Invitar</Button>} />
             <CardContent>
               <Grid container spacing={2}>
-                {members.map((m) => (
+                {initialData?.members?.map((m) => (
                   <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={m.id}>
                     <Card
                       variant="outlined"
@@ -251,9 +283,9 @@ function SpaceDetailPage({ authHeader, initialData, initialEventTickets }) {
                       <CardContent>
                         <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
                           <Stack direction="row" spacing={1.5} alignItems="center">
-                            <Avatar src={m.avatar} alt={m.name} />
+                            <Avatar src={m.profile_picture_url} alt={m.username} />
                             <Box>
-                              <Typography fontWeight={700}>{m.name}</Typography>
+                              <Typography fontWeight={700}>{m.username}</Typography>
                               <Typography variant="caption" color="text.secondary">Miembro</Typography>
                             </Box>
                           </Stack>
@@ -267,6 +299,7 @@ function SpaceDetailPage({ authHeader, initialData, initialEventTickets }) {
           </Card>
         )}
 
+        {/* Tab 4 - Actividad */}
         {tab === 3 && (
           <Card variant="outlined">
             <CardHeader title="Actividad" />

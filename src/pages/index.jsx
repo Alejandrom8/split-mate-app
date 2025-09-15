@@ -21,6 +21,7 @@ import { useSnackbar } from "notistack";
 import clientManager from "@/shared/clientManager";
 import CancelIcon from '@mui/icons-material/Cancel';
 import EmptySection from "@/components/App/EmptySection";
+import LoadingSection from "@/components/App/LoadingSection";
 
 function Home({ initialSpaces }) {
   const [spaces, setSpaces] = useState(initialSpaces?.events);
@@ -117,9 +118,7 @@ function Home({ initialSpaces }) {
             </Box>
           }
           {
-            loading && <Box sx={{ width: '100%', height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <CircularProgress />
-            </Box>
+            loading && <LoadingSection />
           }
           {
             !spaces?.length && !loading && <EmptySection />

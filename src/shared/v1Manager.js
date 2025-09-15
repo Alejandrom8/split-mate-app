@@ -31,10 +31,18 @@ class ApiManager {
     console.log(`[ApiManager][PUT] URL: ${this.baseURL}${url} | Data:`, data, config);
     try {
       const response = await this.instance.put(url, data, config);
-      console.log('[ApiManager][PUT] Success:', response.data);
       return response;
     } catch (error) {
-      console.error('[ApiManager][PUT] Error:', error);
+      throw error;
+    }
+  }
+
+  async delete(url, config = {}) {
+    console.log(`[ApiManager][DELETE] URL: ${this.baseURL}${url} | Config:`, config);
+    try {
+      const response = await this.instance.delete(url, config);
+      return response;
+    } catch (error) {
       throw error;
     }
   }
