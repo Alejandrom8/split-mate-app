@@ -13,6 +13,7 @@ import {
   Button,
   Avatar,
 } from '@mui/material';
+import AppTitle from "@/components/App/AppTitle";
 
 const fmtDate = (iso) => {
   try {
@@ -41,8 +42,7 @@ const fmtMoney = (value, currency = 'MXN') => {
 function SpaceJoin(data) {
   const ev = data.initialEvent;
 
-  const ownerId = ev.created_by_user_id;
-  const ownerInitial = ownerId?.charAt(0)?.toUpperCase() || 'U';
+  const owner = ev?.members?.find((member) => member.role === 'owner');
 
   return (
     <Box
@@ -57,9 +57,9 @@ function SpaceJoin(data) {
     >
       <Stack spacing={3} alignItems="center" sx={{ width: '100%', maxWidth: 640 }}>
         {/* Título de la app */}
-        <Typography variant="h4" fontWeight={800} textAlign="center">
-          Split mate
-        </Typography>
+        <Stack direction={'row'}>
+          <AppTitle />
+        </Stack>
 
         <Card elevation={3} sx={{ width: '100%' }}>
           <CardContent>
@@ -74,23 +74,28 @@ function SpaceJoin(data) {
                 <Chip label={`Código: ${ev.event_code}`} color="default" variant="outlined" />
                 <Chip label={`Fecha: ${fmtDate(ev.event_date)}`} variant="outlined" />
                 <Chip label={`Moneda: ${ev.currency}`} variant="outlined" />
-                <Chip
-                  label={ev.status === 'active' ? 'Activo' : ev.status}
-                  color={ev.status === 'active' ? 'success' : 'default'}
-                  variant="filled"
-                  size="small"
-                />
+                {/*<Chip*/}
+                {/*  label={ev.status === 'active' ? 'Activo' : ev.status}*/}
+                {/*  color={ev.status === 'active' ? 'success' : 'default'}*/}
+                {/*  variant="filled"*/}
+                {/*  size="small"*/}
+                {/*/>*/}
               </Stack>
 
               {/* Owner */}
               <Stack direction="row" spacing={1.5} alignItems="center">
-                <Avatar sx={{ width: 40, height: 40 }}>{ownerInitial}</Avatar>
+                <Avatar
+                  sx={{ width: 40, height: 40 }}
+                  src={owner?.profile_image_url}
+                >
+                  {owner?.username?.charAt(0)?.toUpperCase()}
+                </Avatar>
                 <Stack>
                   <Typography variant="body2" color="text.secondary">
                     Owner
                   </Typography>
                   <Typography variant="body1" sx={{ wordBreak: 'break-all' }}>
-                    {ownerId}
+                    {owner?.first_name} {owner?.last_name}
                   </Typography>
                 </Stack>
               </Stack>

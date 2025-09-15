@@ -25,8 +25,8 @@ export default function CreateSpeedDial({
     <Box
       sx={{
         position: "fixed",
-        right: 34,
-        bottom: 44,
+        right: 24,
+        bottom: 24,
         zIndex: (theme) => theme.zIndex.tooltip + 1,
       }}
     >

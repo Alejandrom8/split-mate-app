@@ -3,7 +3,7 @@ import * as React from "react";
 import {
   Typography, Avatar,
   Box, Container, Grid, Stack, Button, Chip, Card, CardContent, CardHeader,
-  Tabs, Tab, List, ListItem, ListItemText, Breadcrumbs
+  Tabs, Tab, List, ListItem, ListItemText, Breadcrumbs, useTheme, useMediaQuery
 } from "@mui/material";
 import PersonAddAlt1 from "@mui/icons-material/PersonAddAlt1";
 import Paid from "@mui/icons-material/Paid";
@@ -88,7 +88,7 @@ function AvatarGroupTight({ members }) {
   return (
     <Stack direction="row" spacing={-0.5}>
       {members.slice(0, 5).map((m) => (
-        <Avatar key={m.id} src={m.avatar} alt={m.name} sx={{ width: 28, height: 28, border: "2px solid #fff" }} />
+        <Avatar key={m.id} src={m?.profile_image_url} alt={m?.username} sx={{ width: 28, height: 28, border: "2px solid #fff" }} />
       ))}
       {members.length > 5 && (
         <Avatar sx={{ width: 28, height: 28, bgcolor: "grey.300", color: "text.primary", fontSize: 12 }}>
@@ -108,8 +108,6 @@ function SpaceDetailPage({ authHeader, initialData, initialEventTickets }) {
   const [selectedTicketId, setSelectedTicketId] = React.useState(tickets[0]?.id || null);
   const [shareOpen, setShareOpen] = useState(false);
   const router = useRouter();
-
-  console.log('Initial Data:', initialData);
 
   const handleTicketUploaded = (newTicket) => {
     console.log('New ticket uploaded:', newTicket);
@@ -133,7 +131,7 @@ function SpaceDetailPage({ authHeader, initialData, initialEventTickets }) {
 
       <Container sx={{ py: 3, minHeight: '100vh' }}>
         {/* Navegación */}
-        <Breadcrumbs sx={{ py: 2 }} separator={<NavigateNextIcon fontSize="small" />}>
+        <Breadcrumbs sx={{ pb: 3 }} separator={<NavigateNextIcon fontSize="small" />}>
           <Link color="primary" href="/" component={NextLink} sx={{ display: 'flex', alignItems: 'center' }}>
             <HomeIcon fontSize={'small'} sx={{ mr: 1 }}/>
             Inicio
@@ -151,7 +149,7 @@ function SpaceDetailPage({ authHeader, initialData, initialEventTickets }) {
               <Chip size="small" color="primary" label={initialData?.currency} />
             </Stack>
             <Stack direction="row" spacing={1} alignItems="center">
-              <AvatarGroupTight members={members} />
+              <AvatarGroupTight members={initialData?.members} />
               <Typography variant="body2" color="text.secondary">
                 {initialData?.members_count} miembros · {initialData?.tickets_count} tickets
               </Typography>
@@ -190,7 +188,7 @@ function SpaceDetailPage({ authHeader, initialData, initialEventTickets }) {
 
         {/* Tab 1 - Tickets */}
         {tab === 0 && (
-          <Grid container spacing={2}>
+          <Grid container spacing={2} sx={{ pb: 10 }}>
             {
               tickets.length === 0 && <EmptySection />
             }
@@ -303,7 +301,7 @@ export const getServerSideProps = withAuth(async ({ authHeader, ...ctx }) => {
     }
 
     const initialEventData = await v1Manager.get(`/v1/events/${id}`, {}, authHeader);
-    const initialEventTickets = await v1Manager.get(`/v1/api/v1/tickets/events/${id}/tickets`, {}, authHeader);
+    const initialEventTickets = await v1Manager.get(`/v1/tickets/events/${id}/tickets`, {}, authHeader);
 
     return {
       props: {

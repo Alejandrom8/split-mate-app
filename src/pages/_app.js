@@ -4,11 +4,11 @@ import {SnackbarProvider} from "notistack";
 import {CacheProvider} from "@emotion/react";
 import Head from "next/head";
 import createEmotionCache from '../createEmotionCache';
-import SplitMateAppBar from "@/components/App/SplitMateAppBar";
 import * as React from "react";
 import {AuthProvider} from "@/context/AuthContext";
 import ProgressBar from "@/components/App/ProgressBar";
 import {SpeedDialProvider} from "@/context/SpeedDialContext";
+import AppLayout from "@/components/App/AppLayout";
 
 const clientSideEmotionCache = createEmotionCache();
 
@@ -31,7 +31,6 @@ export default function App(props) {
               horizontal: "left",
             }}
           >
-            <SplitMateAppBar />
             <GlobalStyles styles={(theme) => ({
               "#nprogress": { pointerEvents: "none" },
               "#nprogress .bar": {
@@ -50,7 +49,9 @@ export default function App(props) {
               "#nprogress .spinner": { display: "none" },
             })} />
             <ProgressBar />
-            <Component {...pageProps} />
+            <AppLayout>
+              <Component {...pageProps} />
+            </AppLayout>
           </SnackbarProvider>
         </ThemeProvider>
       </SpeedDialProvider>

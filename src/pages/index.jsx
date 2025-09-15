@@ -7,7 +7,7 @@ import {
   Typography,
   TextField, Stack,
   CircularProgress,
-  IconButton
+  IconButton, useTheme, useMediaQuery
 } from "@mui/material";
 import SpaceCard from "@/components/Spaces/SpaceCard";
 import SearchIcon from '@mui/icons-material/Search';
@@ -28,8 +28,6 @@ function Home({ initialSpaces }) {
   const [loading, setLoading] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
   const [query, setQuery] = useState('');
-  const delayedQuery = useDelayedQuery(query, 700);
-
 
   const fetchSpaces = useCallback(async (q) => {
     setLoading(true);
@@ -66,11 +64,6 @@ function Home({ initialSpaces }) {
       })
   };
 
-  // useEffect(() => {
-  //   if (delayedQuery === '') return;
-
-  // }, [delayedQuery]);
-
   return (
     <>
       <Head>
@@ -79,7 +72,9 @@ function Home({ initialSpaces }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
+
       <CreateSpeedDial onSpaceCreated={handleCreated} />
+
       <Box sx={{ minHeight: 600, pb: 10 }}>
         <Box sx={{ backgroundColor: 'rgba(0, 0, 0, 0.05)', mb: 5, p: 6 }}>
           <Container>
@@ -89,7 +84,9 @@ function Home({ initialSpaces }) {
               alignItems={'center'}
               justifyContent="space-between"
             >
-              <Typography variant="h4">Tus espacios</Typography>
+              <Typography variant="h4">
+                Tus espacios
+              </Typography>
               <TextField
                 size="small"
                 sx={{ width: { xs: '80vw', sm: '60vw', md: '40vw' }, borderRadius: 10 }}
@@ -112,6 +109,13 @@ function Home({ initialSpaces }) {
           </Container>
         </Box>
         <Container>
+          {
+            !loading && spaces?.length > 0 && <Box p={2} pt={0}>
+              <Typography variant={'subtitle2'} sx={{ fontStyle: 'italic' }}>
+                {spaces?.length || 0} {spaces?.length === 1 ? 'espacio' : 'espacios'} encontrado{spaces?.length === 1 ? '' : 's'}
+              </Typography>
+            </Box>
+          }
           {
             loading && <Box sx={{ width: '100%', height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <CircularProgress />

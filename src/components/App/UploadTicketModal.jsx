@@ -43,7 +43,7 @@ export default function UploadTicketModal({
       form.append('file', files[0]);
       form.append('event_id', spaceId);
 
-      const res = await v1Manager.post('/v1/api/v1/tickets/upload/rest', form, {
+      const res = await v1Manager.post('/v1/tickets/upload/rest', form, {
         headers: {
           ..._authHeader.headers,
           'Content-Type': 'multipart/form-data',

@@ -5,7 +5,6 @@ import {
   Box,
   Card,
   CardActionArea,
-  CardActions,
   CardContent, IconButton, MenuItem,
   Stack,
   Typography,
@@ -39,7 +38,7 @@ export default function SpaceCard({ item }) {
   >
       <CardContent>
         <Stack direction={'row'} justifyContent={'space-between'} sx={{ width: '100%', mb: 1 }} spacing={1} alignItems={'center'}>
-          <Typography variant={'h5'}>
+          <Typography variant={'h5'} sx={{ flexGrow: 1 }} onClick={handleClick}>
             {item.name}
           </Typography>
           <Stack direction={'row'}>
@@ -88,24 +87,15 @@ export default function SpaceCard({ item }) {
             <Stack direction={'row'} spacing={2}>
               <AvatarGroup>
                 {
-                  [
-                    {
-                      username: 'alex',
-                      picture: 'https://randomuser.me/api/portraits/men/32.jpg'
-                    },
-                    {
-                      username: 'Uri',
-                      picture: 'https://i.pravatar.cc/400?img=68'
-                    },
-                    {
-                      username: 'Maggy',
-                      picture: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&h=400&fit=crop'
-                    },
-                  ].map((user, index) => (
+                  item?.members?.map((user, index) => (
                     <Avatar
                       key={index}
-                      src={user.picture}
-                    />
+                      src={user?.profile_image_url}
+                      alt={user?.username}
+                      sx={{ width: 36, height: 36 }}
+                    >
+                      {user?.username?.charAt(0)?.toUpperCase()}
+                    </Avatar>
                   ))
                 }
               </AvatarGroup>

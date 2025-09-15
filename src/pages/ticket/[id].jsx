@@ -38,8 +38,6 @@ function TicketDetailPage({ initialData }) {
   const handleShare = () => alert("Compartir ticket");
   const handleSplit = () => alert("Ir a dividir gastos");
 
-  console.log('INITIAL TICKET DATA', initialData);
-
   return (
     <TicketDetail
       ticket={initialData}
@@ -53,7 +51,7 @@ function TicketDetailPage({ initialData }) {
 export const getServerSideProps = withAuth(async ({ authHeader, ...ctx }) => {
   try {
     const { id } = ctx.params;
-    const res = await v1Manager.get(`/v1/api/v1/tickets/${id}`, {}, { headers: authHeader.headers });
+    const res = await v1Manager.get(`/v1/tickets/${id}`, {}, { headers: authHeader.headers });
     if (!res?.data?.success) {
       throw new Error(`Error fetching ticket: ${res.status}`);
     }
