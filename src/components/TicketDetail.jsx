@@ -11,7 +11,7 @@ import {
   Stack,
   IconButton,
   Tooltip,
-  Button, useTheme, useMediaQuery, CircularProgress, Dialog, DialogTitle, DialogActions, DialogContent,
+  Button, useTheme, useMediaQuery, CircularProgress, Dialog, DialogTitle, DialogActions, DialogContent, Container,
 } from "@mui/material";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import PlaceIcon from "@mui/icons-material/Place";
@@ -58,7 +58,7 @@ export default function TicketDetail({
   const theme = useTheme();
   const isSm = useMediaQuery(theme.breakpoints.down("sm"));
 
-  return <Stack spacing={1}>
+  return <Container spacing={1}>
       <Box sx={{ py: 1 }}>
         <Button
           onClick={() => router.back()}
@@ -69,92 +69,118 @@ export default function TicketDetail({
           Regresar
         </Button>
       </Box>
-      <Card variant="outlined">
-        <CardHeader
-          sx={{ my: 2 }}
-          avatar={<ReceiptLongIcon />}
-          title={
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Typography variant="h6" fontWeight={800} noWrap>
-                {establishment_name || "—"}
-              </Typography>
-              {validation_status && (
-                <Chip
-                  size="small"
-                  color={TICKET_STATUS_MAP[validation_status]?.color || "default"}
-                  label={TICKET_STATUS_MAP[validation_status]?.label || validation_status}
+      <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Card
+          variant="outlined"
+          sx={{ width: { xs: '100%', md: '40vw' } }}
+        >
+          <CardHeader
+            sx={{ my: 2 }}
+            avatar={<ReceiptLongIcon />}
+            title={
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Typography variant="h6" fontWeight={800} noWrap>
+                  {establishment_name || "—"}
+                </Typography>
+                {validation_status && (
+                  <Chip
+                    size="small"
+                    color={TICKET_STATUS_MAP[validation_status]?.color || "default"}
+                    label={TICKET_STATUS_MAP[validation_status]?.label || validation_status}
+                  />
+                )}
+              </Stack>
+            }
+            subheader={
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Stack direction="row" spacing={0.5} alignItems="center">
+                  <PlaceIcon fontSize="small" />
+                  <Typography variant="body2" color="text.secondary">
+                    {category || "Sin categoría"}
+                  </Typography>
+                </Stack>
+                <Stack direction="row" spacing={0.5} alignItems="center">
+                  <AccessTimeIcon fontSize="small" />
+                  <Typography variant="body2" color="text.secondary">
+                    {ticket_date ? fmtDate(ticket_date) : "—"}
+                  </Typography>
+                </Stack>
+              </Stack>
+            }
+          />
+
+          <Divider />
+
+          <CardContent>
+            {
+              items?.map((it, index) => (
+                <TicketItem
+                  item={it} key={index}
+                  onEdit={() => console.log('Edit item')}
+                  onDelete={() => console.log('Delete item')}
                 />
-              )}
-            </Stack>
-          }
-          subheader={
-            <Stack direction="row" spacing={2} alignItems="center">
-              <Stack direction="row" spacing={0.5} alignItems="center">
-                <PlaceIcon fontSize="small" />
-                <Typography variant="body2" color="text.secondary">
-                  {category || "Sin categoría"}
-                </Typography>
-              </Stack>
-              <Stack direction="row" spacing={0.5} alignItems="center">
-                <AccessTimeIcon fontSize="small" />
-                <Typography variant="body2" color="text.secondary">
-                  {ticket_date ? fmtDate(ticket_date) : "—"}
-                </Typography>
-              </Stack>
-            </Stack>
-          }
-        />
+              ))
+            }
+            <Box sx={{ mb: '150px' }}/>
+          </CardContent>
 
-        <Divider />
-
-        <CardContent>
           {
-            items?.map((it, index) => (
-              <TicketItem
-                item={it} key={index}
-                onEdit={() => console.log('Edit item')}
-                onDelete={() => console.log('Delete item')}
-              />
-            ))
-          }
-          <Box sx={{ mb: '150px' }}/>
-        </CardContent>
-
-        {
-          isSm && <Card
-            sx={{
-              width: '93vw',
-              position: 'fixed',
-              bottom: 30,
-              left: 'calc(50vw - (93vw / 2))',
-              borderWidth: 1,
-              borderStyle: 'solid',
-              borderColor: 'primary.main',
-            }}
-          >
-            <CardContent>
-              <Box
-                sx={{
-                  my: 1,
-                  height: 1,
-                  background:
-                    "repeating-linear-gradient(90deg, rgba(0,0,0,.35), rgba(0,0,0,.35) 6px, transparent 6px, transparent 12px)",
-                }}
-              />
-              <Row
-                label="TOTAL"
-                value={total_amount != null ? fmtMoney(total_amount, currency) : "—"}
-                strong
-              />
-              {totalWithTip != null && totalWithTip > total_amount && (
+            isSm && <Card
+              sx={{
+                width: '93vw',
+                position: 'fixed',
+                bottom: 30,
+                left: 'calc(50vw - (93vw / 2))',
+                borderWidth: 1,
+                borderStyle: 'solid',
+                borderColor: 'primary.main',
+              }}
+            >
+              <CardContent>
+                <Box
+                  sx={{
+                    my: 1,
+                    height: 1,
+                    background:
+                      "repeating-linear-gradient(90deg, rgba(0,0,0,.35), rgba(0,0,0,.35) 6px, transparent 6px, transparent 12px)",
+                  }}
+                />
                 <Row
-                  label="TOTAL C/ PROP."
-                  value={fmtMoney(totalWithTip, currency)}
+                  label="TOTAL"
+                  value={total_amount != null ? fmtMoney(total_amount, currency) : "—"}
                   strong
                 />
-              )}
-            </CardContent>
-            <CardActions>
+                {totalWithTip != null && totalWithTip > total_amount && (
+                  <Row
+                    label="TOTAL C/ PROP."
+                    value={fmtMoney(totalWithTip, currency)}
+                    strong
+                  />
+                )}
+              </CardContent>
+              <CardActions>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                >
+                  Publicar ticket
+                </Button>
+                <Button
+                  type="submit"
+                  variant="outlined"
+                  color="primary"
+                  fullWidth
+                >
+                  Guardar y regresar
+                </Button>
+              </CardActions>
+            </Card>
+          }
+
+          {
+            !isSm && <CardActions sx={{ p: 2, pt: 0, justifyContent: "space-between" }}>
               <Button
                 type="submit"
                 variant="contained"
@@ -169,29 +195,13 @@ export default function TicketDetail({
                 color="primary"
                 fullWidth
               >
-                Guardar y regresar
+                Guardar y salir
               </Button>
             </CardActions>
-          </Card>
-        }
-
-        {
-          !isSm && <CardActions sx={{ p: 2, pt: 0, justifyContent: "space-between" }}>
-            <Stack direction="row" spacing={1}>
-              <Tooltip title="Editar">
-                <IconButton onClick={onEdit}><EditIcon /></IconButton>
-              </Tooltip>
-              <Tooltip title="Compartir">
-                <IconButton onClick={onShare}><ShareIcon /></IconButton>
-              </Tooltip>
-            </Stack>
-            <Button variant="contained" onClick={onSplit}>
-              Dividir gastos
-            </Button>
-          </CardActions>
-        }
-      </Card>
-  </Stack>;
+          }
+        </Card>
+      </Box>
+  </Container>;
 }
 
 /* Sub-componente para filas de totales alineadas tipo ticket */

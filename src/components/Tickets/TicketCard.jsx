@@ -69,63 +69,64 @@ export default function TicketRow({ ticket, onSelect, onDeleteCompleted }) {
         }}
       >
         <CardContent sx={{ pb: 2 }}>
-          <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
-            {/* Izquierda: título + meta */}
-            <Stack spacing={0.5} sx={{ minWidth: 0 /* para truncado */ }}>
-              <Typography
-                variant="subtitle1"
-                fontWeight={700}
-                noWrap
-                title={establishment}
-              >
-                {establishment}
-              </Typography>
+          <Stack direction={'column'} spacing={1}>
+            <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
+              {/* Izquierda: título + meta */}
+              <Stack spacing={0.5} sx={{ minWidth: 0 /* para truncado */ }}>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={700}
+                  noWrap
+                  title={establishment}
+                >
+                  {establishment}
+                </Typography>
 
-              <Typography variant="body2" color="text.secondary">
-                {ticketDate}
-              </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {ticketDate}
+                </Typography>
+              </Stack>
 
-              <Stack direction="row" spacing={1} flexWrap="wrap">
-                <Chip
+              {/* Derecha: total + menú */}
+              <Stack direction="row" alignItems="flex-start" spacing={1} sx={{ flexShrink: 0 }}>
+                <Typography variant="h6" fontWeight={800} sx={{ mt: 0.5 }}>
+                  {fmtMoney(ticket?.total_amount)}
+                </Typography>
+
+                <IconButton
+                  aria-label="Más opciones"
+                  onClick={openMenu}
+                  edge="end"
                   size="small"
-                  color={statusCfg.color || "default"}
-                  label={statusCfg.label || ticket?.validation_status || "—"}
-                />
-                <Chip size="small" variant="outlined" label={`${ticket?.items_count ?? 0} ítems`} />
-                <Chip size="small" variant="outlined" label={`${ticket?.participants_count ?? 0} amigos`} />
+                >
+                  <MoreVertIcon />
+                </IconButton>
+
+                <Menu
+                  anchorEl={menuEl}
+                  open={Boolean(menuEl)}
+                  onClose={closeMenu}
+                  anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                  transformOrigin={{ vertical: "top", horizontal: "right" }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <MenuItem onClick={handleDeleteClick}>
+                    <ListItemIcon>
+                      <DeleteOutlineIcon fontSize="small" />
+                    </ListItemIcon>
+                    Borrar ticket
+                  </MenuItem>
+                </Menu>
               </Stack>
             </Stack>
-
-            {/* Derecha: total + menú */}
-            <Stack direction="row" alignItems="flex-start" spacing={1} sx={{ flexShrink: 0 }}>
-              <Typography variant="h6" fontWeight={800} sx={{ mt: 0.5 }}>
-                {fmtMoney(ticket?.total_amount)}
-              </Typography>
-
-              <IconButton
-                aria-label="Más opciones"
-                onClick={openMenu}
-                edge="end"
+            <Stack direction="row" spacing={0.5} flexWrap="wrap" gap={0}>
+              <Chip
                 size="small"
-              >
-                <MoreVertIcon />
-              </IconButton>
-
-              <Menu
-                anchorEl={menuEl}
-                open={Boolean(menuEl)}
-                onClose={closeMenu}
-                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                transformOrigin={{ vertical: "top", horizontal: "right" }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <MenuItem onClick={handleDeleteClick}>
-                  <ListItemIcon>
-                    <DeleteOutlineIcon fontSize="small" />
-                  </ListItemIcon>
-                  Borrar ticket
-                </MenuItem>
-              </Menu>
+                color={statusCfg.color || "default"}
+                label={statusCfg.label || ticket?.validation_status || "—"}
+              />
+              <Chip size="small" variant="outlined" label={`${ticket?.items_count ?? 0} ítems`} />
+              <Chip size="small" variant="outlined" label={`${ticket?.participants_count ?? 0} amigos`} />
             </Stack>
           </Stack>
         </CardContent>
