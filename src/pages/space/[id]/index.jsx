@@ -135,7 +135,7 @@ function SpaceDetailPage({ authHeader, initialData, initialEventTickets }) {
 
   const handleTicketUploaded = (newTicket) => {
     onCloseUploadTicket();
-    router.push(`/ticket/${newTicket.id}`);
+    router.push(`/space/${initialData?.id}/ticket/${newTicket.id}`);
   };
 
   const handleDeleteCompleted = async () => {
@@ -241,7 +241,7 @@ function SpaceDetailPage({ authHeader, initialData, initialEventTickets }) {
                     <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={t.id}>
                       <TicketCard
                         ticket={t}
-                        onSelect={(tk) => router.push(`/ticket/${tk.id}`)}
+                        onSelect={(tk) => router.push(`/space/${initialData?.id}/ticket/${tk.id}`)}
                         onDeleteCompleted={handleDeleteCompleted}
                       />
                     </Grid>

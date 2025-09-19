@@ -1,15 +1,21 @@
 import * as React from "react";
-import TicketDetail from '../../components/TicketDetail';
+import TicketDetail from '../../../../components/TicketDetail';
 import {withAuth} from "@/shared/withAuth";
 import v1Manager from "@/shared/v1Manager";
+import {useState} from "react";
 
-function TicketDetailPage({ initialData }) {
+function TicketDetailPage({ isOwner, spaceId, initialData }) {
   const handleEdit = () => alert("Editar ticket");
   const handleShare = () => alert("Compartir ticket");
   const handleSplit = () => alert("Ir a dividir gastos");
+  const [isEditable, setIsEditable] = useState(isOwner && initialData?.validation_status === 'hidden');
+  const [isSelectable, setIsSelectable] = useState(initialData?.validation_status === 'in_build');
 
   return (
     <TicketDetail
+      selectable={isSelectable}
+      editable={isEditable}
+      spaceId={spaceId}
       ticket={initialData}
       onEdit={handleEdit}
       onShare={handleShare}
@@ -20,14 +26,19 @@ function TicketDetailPage({ initialData }) {
 
 export const getServerSideProps = withAuth(async ({ authHeader, ...ctx }) => {
   try {
-    const { id } = ctx.params;
-    const res = await v1Manager.get(`/v1/tickets/${id}`, {}, { headers: authHeader.headers });
+    const { id, ticket_id } = ctx.params;
+    const res = await v1Manager.get(`/v1/tickets/${ticket_id}`, {}, { headers: authHeader.headers });
     if (!res?.data?.success) {
       throw new Error(`Error fetching ticket: ${res.status}`);
     }
+    const userRes = await v1Manager.get('/v1/users/me', {}, authHeader);
+    const currentUser = userRes.data.data;
     const ticket = res.data.data;
+    const isOwner = ticket.owner.user_id === currentUser.id;
     return {
       props: {
+        isOwner,
+        spaceId: id,
         initialData: ticket,
       }
     };

@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useMemo, useState} from "react";
 import {
   Card,
   CardContent,
@@ -7,36 +7,75 @@ import {
   Box,
   Stack,
   Tooltip,
-  Divider, Dialog, CardHeader, CardActions, Button, CircularProgress, TextField,
+  Divider, Dialog, CardHeader, CardActions, Button, CircularProgress, TextField, Checkbox, AvatarGroup, Avatar,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import { fmtMoney } from "@/shared/utils";
-import {useSnackbar} from "notistack";
 
-export default function TicketItem({ item, currency, onEdit, onDelete }) {
-  const [editOpen, setEditOpen] = React.useState(false);
+export default function TicketItem({ item, selectable, selected, editable, currency, onCheck, onEdit, onDelete }) {
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { enqueueSnackbar } = useSnackbar();
 
-  const [itemName, setItemName] = useState(item?.name);
+  const [itemName, setItemName] = useState(item?.name)
   const [itemQuantity, setItemQuantity] = useState(item?.total_quantity);
   const [itemUnitPrice, setItemUnitPrice] = useState(item?.unit_price);
-  const [itemTotal, setItemTotal] = useState(item?.total_price);
+  const itemTotal = useMemo(() => itemQuantity * itemUnitPrice, [itemQuantity, itemUnitPrice]);
 
   const qty = itemQuantity ?? 0;
   const unit = itemUnitPrice != null ? fmtMoney(itemUnitPrice, currency) : "—";
   const total =
     itemTotal != null ? fmtMoney(itemTotal, currency) : "—";
 
+
   const handleCancel = () => {
     setEditOpen(false);
+    setDeleteOpen(false);
+    setItemName(item?.name);
+    setItemQuantity(item?.total_quantity);
+    setItemUnitPrice(item?.unit_price);
   }
+
+  const handleChange = (event) => {
+    onCheck(item, event.target.checked);
+  };
 
   const handleEditSubmit = (e) => {
     e.preventDefault();
-  };
+    setLoading(true);
+    onEdit({
+      ...item,
+      name: itemName,
+      unit_price: itemUnitPrice,
+      total_quantity: itemQuantity,
+    })
+      .then(() => {
+        setEditOpen(false);
+      })
+      .catch(() => {
+        handleCancel();
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }
+
+  const handleDeleteItemSubmit = (e) => {
+    e.preventDefault();
+    setLoading(true);
+    onDelete(item.id)
+      .then(() => {
+        setDeleteOpen(false);
+      })
+      .catch(() => {
+        handleCancel();
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }
 
   return <>
     <Card
@@ -54,6 +93,7 @@ export default function TicketItem({ item, currency, onEdit, onDelete }) {
           boxShadow: 3,
         },
       }}
+      onClick={() => onCheck(item, !selected)}
     >
       {/* fila superior: icono + nombre + acciones */}
       <Stack direction="row" alignItems="center" spacing={1.5}>
@@ -79,26 +119,36 @@ export default function TicketItem({ item, currency, onEdit, onDelete }) {
         </Typography>
 
         <Stack direction="row" spacing={0.5}>
-          <Tooltip title="Editar">
-            <IconButton
-              size="small"
-              color="primary"
-              onClick={() => setEditOpen(true)}
-              aria-label={`Editar ${item.name}`}
-            >
-              <EditIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Eliminar">
-            <IconButton
-              size="small"
-              color="error"
-              onClick={() => onDelete?.(item.id)}
-              aria-label={`Eliminar ${item.name}`}
-            >
-              <DeleteIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
+          {
+            selectable && <Checkbox
+              checked={selected}
+              onChange={handleChange}
+            />
+          }
+          {
+            editable && <>
+              <Tooltip title="Editar">
+                <IconButton
+                  size="small"
+                  color="primary"
+                  onClick={() => setEditOpen(true)}
+                  aria-label={`Editar ${item.name}`}
+                >
+                  <EditIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Eliminar">
+                <IconButton
+                  size="small"
+                  color="error"
+                  onClick={() => setDeleteOpen(true)}
+                  aria-label={`Eliminar ${item.name}`}
+                >
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </>
+          }
         </Stack>
       </Stack>
 
@@ -152,83 +202,122 @@ export default function TicketItem({ item, currency, onEdit, onDelete }) {
       </Stack>
     </Card>
 
-
-    {/* Editar item */}
-    <Dialog open={editOpen} onClose={handleCancel} fullWidth maxWidth="sm">
-      <form onSubmit={handleEditSubmit}>
-        <Card elevation={1}>
-          <CardHeader title={'Editar item'} />
-          <CardContent>
-            <Stack spacing={2}>
-              <TextField
-                value={itemName}
-                onChange={(e) => setItemName(e.target.value)}
-                type={'text'}
-                placeholder={'Nombre'}
-                fullWidth
-                label={'Nombre'}
-                hiddenLabel
-                variant={'outlined'}
-                disabled={loading}
-              />
-              <TextField
-                value={itemQuantity}
-                onChange={(e) => setItemQuantity(e.target.value)}
-                type={'number'}
-                placeholder={'Nombre del item'}
-                fullWidth
-                hiddenLabel
-                variant={'outlined'}
-                label={'Cantidad'}
-                disabled={loading}
-              />
-              <TextField
-                value={itemUnitPrice}
-                onChange={(e) => setItemUnitPrice(e.target.value)}
-                type={'number'}
-                placeholder={'Precio unitario'}
-                fullWidth
-                hiddenLabel
-                variant={'outlined'}
-                label={'Precio unitario'}
-                disabled={loading}
-              />
-              <TextField
-                value={itemTotal}
-                onChange={(e) => setItemTotal(e.target.value)}
-                type={'number'}
-                placeholder={'Total'}
-                fullWidth
-                hiddenLabel
-                variant={'outlined'}
-                label={'Total'}
-                disabled={loading}
-              />
-            </Stack>
-          </CardContent>
-          <CardActions sx={{ px: 2, pb: 2, pt: 0 }}>
-            <Button
-              variant="outlined"
-              color="secondary"
-              fullWidth
-              onClick={handleCancel}
-              disabled={loading}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              fullWidth
-              disabled={loading}
-              startIcon={loading ? <CircularProgress size={16} color="inherit" /> : null}
-            >
-              {loading ? 'Guardando...' : 'Guardar'}
-            </Button>
-          </CardActions>
-        </Card>
-      </form>
-    </Dialog>
+    {
+      editable && <>
+        {/* Editar item */}
+        <Dialog open={editOpen} onClose={handleCancel} fullWidth maxWidth="sm">
+          <form onSubmit={handleEditSubmit}>
+            <Card elevation={1}>
+              <CardHeader title={'Editar item'} />
+              <CardContent>
+                <Stack spacing={2}>
+                  <TextField
+                    value={itemName}
+                    onChange={(e) => setItemName(e.target.value)}
+                    type={'text'}
+                    placeholder={'Nombre'}
+                    fullWidth
+                    label={'Nombre'}
+                    hiddenLabel
+                    variant={'outlined'}
+                    disabled={loading}
+                  />
+                  <TextField
+                    value={itemQuantity}
+                    onChange={(e) => setItemQuantity(e.target.value)}
+                    type={'number'}
+                    placeholder={'Nombre del item'}
+                    fullWidth
+                    hiddenLabel
+                    variant={'outlined'}
+                    label={'Cantidad'}
+                    disabled={loading}
+                  />
+                  <TextField
+                    value={itemUnitPrice}
+                    onChange={(e) => setItemUnitPrice(e.target.value)}
+                    type={'number'}
+                    placeholder={'Precio unitario'}
+                    fullWidth
+                    hiddenLabel
+                    variant={'outlined'}
+                    label={'Precio unitario'}
+                    disabled={loading}
+                  />
+                  <TextField
+                    value={itemTotal}
+                    type={'number'}
+                    placeholder={'Total'}
+                    fullWidth
+                    hiddenLabel
+                    variant={'outlined'}
+                    label={'Total'}
+                    disabled
+                    helperText={'El total es calculado en base al precio unitario y a la cantidad'}
+                  />
+                </Stack>
+              </CardContent>
+              <CardActions sx={{ px: 2, pb: 2, pt: 0 }}>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  fullWidth
+                  onClick={handleCancel}
+                  disabled={loading}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                  disabled={loading}
+                  startIcon={loading ? <CircularProgress size={16} color="inherit" /> : null}
+                >
+                  {loading ? 'Guardando...' : 'Guardar'}
+                </Button>
+              </CardActions>
+            </Card>
+          </form>
+        </Dialog>
+        {/* Eliminar item */}
+        <Dialog open={deleteOpen} onClose={handleCancel} fullWidth maxWidth="sm">
+          <form onSubmit={handleDeleteItemSubmit}>
+            <Card elevation={1}>
+              <CardHeader title={'¿Deseas eliminar este item?'} />
+              <CardContent>
+                <Stack spacing={2}>
+                  <Typography variant={'h5'}>
+                    {item.name}
+                  </Typography>
+                </Stack>
+              </CardContent>
+              <CardActions sx={{ px: 2, pb: 2, pt: 0 }}>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  fullWidth
+                  onClick={handleCancel}
+                  disabled={loading}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                  disabled={loading}
+                  startIcon={loading ? <CircularProgress size={16} color="inherit" /> : null}
+                >
+                  {loading ? 'Eliminando...' : 'Eliminar'}
+                </Button>
+              </CardActions>
+            </Card>
+          </form>
+        </Dialog>
+      </>
+    }
   </>;
 }
