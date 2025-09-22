@@ -40,7 +40,7 @@ export default function App(props) {
                 left: 0,
                 width: "100%",
                 height: 3,
-                zIndex: 2000, // 👈 más alto que AppBar
+                zIndex: 2000,
               },
               "#nprogress .peg": {
                 boxShadow: `0 0 10px ${theme.palette.primary.main}, 0 0 5px ${theme.palette.primary.main}`,
