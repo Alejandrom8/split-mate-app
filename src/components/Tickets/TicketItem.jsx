@@ -7,7 +7,17 @@ import {
   Box,
   Stack,
   Tooltip,
-  Divider, Dialog, CardHeader, CardActions, Button, CircularProgress, TextField, Checkbox, AvatarGroup, Avatar,
+  Divider,
+  Dialog,
+  CardHeader,
+  CardActions,
+  Button,
+  CircularProgress,
+  TextField,
+  Checkbox,
+  AvatarGroup,
+  Avatar,
+  useTheme, useMediaQuery,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -15,12 +25,16 @@ import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import { fmtMoney } from "@/shared/utils";
 import NumericInput from "@/components/Form/NumericInput";
 import MiniNumericInput from "@/components/Form/NumericInput";
+import AvatarGroupTight from "@/components/App/AvatarGroupTight";
 
-export default function TicketItem({ item, selectable, selected, editable, currency, onCheck, onEdit, onDelete }) {
+export default function TicketItem({ item, selectable, selected, editable, initialAssignments, currency, onCheck, onEdit, onDelete }) {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isEditingItemTotal, setIsEditingItemTotal] = useState(false);
+  const [assignments, setAssignments] = useState(initialAssignments?.assignments);
+  const theme = useTheme();
+  const isSm = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [itemName, setItemName] = useState(item?.name)
   const [itemQuantity, setItemQuantity] = useState(item?.total_quantity);
@@ -145,10 +159,20 @@ export default function TicketItem({ item, selectable, selected, editable, curre
 
         <Typography
           variant="subtitle1"
-          sx={{ fontWeight: 700, flex: 1, pr: 1, lineHeight: 1.2 }}
+          sx={{ fontWeight: 700, pr: 1, lineHeight: 1.2 }}
         >
           {item.name || "Ítem sin nombre"}
         </Typography>
+
+        {
+          !isSm && assignments?.length > 0 && <AvatarGroupTight members={assignments.map((a) => ({
+            id: a?.user_id,
+            profile_image_url: a?.user_profile_image,
+            username: a?.user_name,
+          }))} />
+        }
+
+        <Box sx={{ flex: 1 }} />
 
         <Stack direction="row" spacing={0.5}>
           {
@@ -223,21 +247,31 @@ export default function TicketItem({ item, selectable, selected, editable, curre
         </Stack>
 
         {/* total destacado */}
-        <Box textAlign={{ xs: "left", sm: "right" }}>
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ display: "block", mb: 0.25 }}
-          >
-            Total
-          </Typography>
-          <Typography
-            variant="h6"
-            sx={{ fontWeight: 800, lineHeight: 1 }}
-          >
-            {total}
-          </Typography>
-        </Box>
+        <Stack direction={'row'} sx={{ width: { xs: '100%', md: 'auto'} }} justifyContent={'space-between'} alignItems={'center'}>
+          <Box textAlign={{ xs: "left", sm: "right" }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: "block", mb: 0.25 }}
+            >
+              Total
+            </Typography>
+            <Typography
+              variant="h6"
+              sx={{ fontWeight: 800, lineHeight: 1 }}
+            >
+              {total}
+            </Typography>
+          </Box>
+
+          {
+            isSm && assignments?.length > 0 && <AvatarGroupTight members={assignments.map((a) => ({
+              id: a?.user_id,
+              profile_image_url: a?.user_profile_image,
+              username: a?.user_name,
+            }))} />
+          }
+        </Stack>
       </Stack>
     </Card>
 

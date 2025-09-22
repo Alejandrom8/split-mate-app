@@ -160,7 +160,7 @@ const splitMateVolt = createTheme({
           background: "rgba(255,255,255,0.55)",
           backdropFilter: "blur(10px)",
           border: "1px solid rgba(255,255,255,0.7)",
-          boxShadow: "0 8px 20px rgba(11,18,32,0.10)",
+          boxShadow: "0 4px 10px rgba(11,18,32,0.10)",
         },
       },
     },

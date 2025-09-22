@@ -19,7 +19,7 @@ export default function TicketRow({ ticket, onSelect, onDeleteCompleted }) {
   const [loading, setLoading] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
   const { user } = useAuth();
-  const isOwner = useMemo(() => ticket?.owner?.user_id === user.id, [ticket]);
+  const isOwner = useMemo(() => ticket?.owner?.user_id === user?.id, [ticket, user]);
 
   const openMenu = (e) => {
     e.stopPropagation();

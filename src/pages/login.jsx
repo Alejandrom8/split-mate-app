@@ -106,6 +106,7 @@ function SignInPage({ initialMode = 'login', next }) {
             xs: 'none',
             md: '1px solid #ccc'
           },
+          backgroundColor: 'white',
           borderRadius: 2,
           p: 4,
         }}

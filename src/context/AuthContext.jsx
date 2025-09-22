@@ -1,5 +1,6 @@
 import React, { useEffect, useState, createContext, useContext } from 'react';
 import clientManager from "@/shared/clientManager";
+import {useRouter} from "next/router";
 
 const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
@@ -7,6 +8,7 @@ export const useAuth = () => useContext(AuthContext);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState();
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const hydrate = async () => {
     try {
@@ -20,7 +22,9 @@ export function AuthProvider({ children }) {
 
   // Bootstrap del usuario al montar (si no vino por SSR)
   useEffect(() => {
-    hydrate().then(() => console.log('hydrate finished')).catch(error => console.log(error));
+    hydrate()
+      .then(() => console.log('hydrate finished'))
+      .catch(error => router.push('/login'));
   }, []);
 
   // Helpers: login/logout
@@ -46,7 +50,6 @@ export function AuthProvider({ children }) {
       email,
       password,
     });
-    console.log('SITNUP RESULT', res);
     if (!res.ok) {
       const err = await res?.error || null;
       throw new Error(err.error || 'Error al crear cuenta');

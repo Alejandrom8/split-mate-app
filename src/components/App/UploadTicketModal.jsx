@@ -113,7 +113,7 @@ export default function UploadTicketModal({
               variant="contained"
               color="primary"
               fullWidth
-              disabled={loading}
+              disabled={loading || !spaceId}
               startIcon={loading ? <CircularProgress size={16} color="inherit" /> : null}
             >
               {loading ? 'Subiendo...' : 'Subir'}

@@ -129,7 +129,11 @@ function SpaceJoin(data) {
                     Owner
                   </Typography>
                   <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                    {owner?.first_name} {owner?.last_name}
+                    {
+                      owner.first_name
+                        ? `${owner.first_name} ${owner.last_name}`
+                        : `${owner?.username}`
+                    }
                   </Typography>
                 </Stack>
               </Stack>

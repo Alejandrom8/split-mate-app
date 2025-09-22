@@ -82,7 +82,7 @@ function SummaryStat({ icon, label, value, hint, color = "primary.main" }) {
 }
 
 // ---------- Página Detalle de espacio ----------
-function SpaceDetailPage({ authHeader, initialData, initialEventTickets }) {
+function SpaceDetailPage({ authHeader, initialData, initialEventTickets, initialEventBalance }) {
   const [tab, setTab] = React.useState(0);
   const [tickets, setTickets] = React.useState(initialEventTickets);
   const [shareOpen, setShareOpen] = useState(false);
@@ -129,7 +129,7 @@ function SpaceDetailPage({ authHeader, initialData, initialEventTickets }) {
       <CreateSpaceSpeedDial
         authHeader={authHeader}
         spaceId={initialData?.id}
-        onSpaceCreated={() => router.push('/')}
+        onSpaceCreated={() => router.push('/home')}
         onTicketUploaded={handleTicketUploaded}
       />
 
@@ -230,19 +230,106 @@ function SpaceDetailPage({ authHeader, initialData, initialEventTickets }) {
         )}
 
         {/* Tab 2 - Balance */}
-        {tab === 1 && (
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 6, md: 4, }}>
-              <SummaryStat icon={<Paid />} label="Total gastado" value={fmtMoney(initialData?.total_amount)} />
+          {tab === 1 && (
+                <Grid container spacing={2}>
+              {/**
+                  <Grid item size={{ xs:12, sm: 6, md: 4 }}>
+                    <SummaryStat icon={<Paid />} label="Total gastado" value={fmtMoney(initialData?.total_amount)} />
+                  </Grid>
+                  <Grid item size={{ xs:12, sm: 6, md: 4 }}>
+                    <SummaryStat icon={<ReceiptLong />} label="Tickets" value={initialData?.tickets_count} hint="2 pendientes de confirmar" color="warning.main" />
+                  </Grid>
+                  <Grid item size={{ xs:12, sm: 6, md: 4 }}>
+                    <SummaryStat icon={<CheckCircle />} label="Asignación" value="78%" hint="Ítems asignados" color="success.main" />
+                  </Grid>
+              */}
+
+              {/* Renderizar deudas */}
+                  {initialEventBalance.map((debt, index) => (
+                    <Grid size={{ xs: 12 }} key={index}>
+                      <Card
+                        variant="outlined"
+                        sx={{
+                          borderRadius: 1,
+                          p: 1,
+                        }}
+                      >
+                        <CardContent>
+                          <Stack
+                            direction="row"
+                            spacing={2}
+                            alignItems="center"
+                            justifyContent="space-between"
+                          >
+                            {/* Avatar + User */}
+                            <Stack direction="row" spacing={2} alignItems="center">
+                              <Avatar
+                                src={debt.member.profile_image_url}
+                                alt={debt.member.username}
+                                sx={{
+                                  width: 48,
+                                  height: 48,
+                                  fontWeight: 700,
+                                }}
+                              >
+                                {debt.member.username?.[0]?.toUpperCase()}
+                              </Avatar>
+                              <Box>
+                                <Typography variant="subtitle1" fontWeight={700}>
+                                  {debt.member.username}
+                                </Typography>
+                                <Typography
+                                  variant="caption"
+                                  sx={{ color: "text.secondary" }}
+                                >
+                                  Balance general
+                                </Typography>
+                              </Box>
+                            </Stack>
+
+                            {/* Balance principal */}
+                            <Box textAlign="right">
+                              <Typography
+                                variant="h6"
+                                fontWeight={800}
+                                sx={{
+                                  color:
+                                    parseFloat(debt.balance) >= 0
+                                      ? "success.main"
+                                      : "error.main",
+                                }}
+                              >
+                                {fmtMoney(debt.balance)}
+                              </Typography>
+                              <Stack direction="row" spacing={1} mt={0.5}>
+                                <Chip
+                                  size="small"
+                                  label={`+ ${fmtMoney(debt.owed_to_me)}`}
+                                  sx={{
+                                    bgcolor: "success.light",
+                                    color: "success.dark",
+                                    fontWeight: 600,
+                                  }}
+                                />
+                                <Chip
+                                  size="small"
+                                  label={`- ${fmtMoney(debt.i_owe)}`}
+                                  sx={{
+                                    bgcolor: "error.light",
+                                    color: "error.dark",
+                                    fontWeight: 600,
+                                  }}
+                                />
+                              </Stack>
+                            </Box>
+                          </Stack>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  ))}
             </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 4, }}>
-              <SummaryStat icon={<ReceiptLong />} label="Tickets" value={initialData?.tickets_count} hint="2 pendientes de confirmar" color="warning.main" />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 4, }}>
-              <SummaryStat icon={<CheckCircle />} label="Asignación" value="78%" hint="Ítems asignados" color="success.main" />
-            </Grid>
-          </Grid>
-        )}
+          )}
+
 
         {/* Tab 3 - Miembros */}
         {tab === 2 && (
@@ -312,12 +399,14 @@ export const getServerSideProps = withAuth(async ({ authHeader, ...ctx }) => {
 
     const initialEventData = await v1Manager.get(`/v1/events/${id}`, {}, authHeader);
     const initialEventTickets = await v1Manager.get(`/v1/tickets/events/${id}/tickets`, {}, authHeader);
+    const initialEventBalance = await v1Manager.get(`/v1/balance/${id}`, {}, authHeader);
 
     return {
       props: {
         authHeader,
         initialData: initialEventData.data?.data,
         initialEventTickets: initialEventTickets.data?.data?.tickets,
+        initialEventBalance: initialEventBalance.data?.data?.debts,
       }
     };
   } catch (error) {

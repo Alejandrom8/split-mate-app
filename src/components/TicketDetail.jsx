@@ -36,12 +36,30 @@ import DatePicker from "@/components/Form/DatePicker";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
+
+function mapItemsAssignments (items) {
+  const result = [];
+  if (items?.length > 0) {
+    const assignedItems = items.filter(item => item.assignments?.length > 0);
+    for (const item of assignedItems) {
+      result.push({
+        id: item.item_id,
+        name: item.item_name,
+        unit_price: item.item_unit_price,
+        total_quantity: item.item_total_quantity,
+      });
+    }
+  }
+  return result;
+}
+
 export default function TicketDetail({
-                                       selectable,
-                                       editable,
-                                       spaceId,
-                                       ticket,
-                                     }) {
+     selectable,
+     editable,
+     spaceId,
+     ticket,
+     assignments,
+}) {
   const {
     image_url,
     currency = "MXN",
@@ -57,6 +75,8 @@ export default function TicketDetail({
   const [editOpen, setEditOpen] = useState(false);
   const [imageOpen, setImageOpen] = useState(false);
   const itemsTotalSum = useMemo(() => items.reduce((ac, it) => ac + Number(it.total_price), 0), [items]);
+
+  const [itemsAssignments, setItemsAssignments] = useState(assignments?.items_assignments || []);
 
   /** TICKET FIELDS */
   const [ticketEstablishmentName, setTicketEstablishmentName] = useState(ticket?.establishment_name || '');
@@ -74,7 +94,7 @@ export default function TicketDetail({
   const [itemUnitPrice, setItemUnitPrice] = useState(0);
   const itemTotal = useMemo(() => itemQuantity * itemUnitPrice, [itemQuantity, itemUnitPrice]);
 
-  const [selectedItems, setSelectedItems] = useState([]);
+  const [selectedItems, setSelectedItems] = useState(mapItemsAssignments(itemsAssignments));
   const [showSelectedItems, setShowSelectedItems] = useState(false);
 
   const toggleShowSelectedItems = () => setShowSelectedItems(!showSelectedItems);
@@ -354,6 +374,7 @@ export default function TicketDetail({
                 selectable={selectable}
                 selected={!!selectedItems.find(sIt => sIt.id === it.id)}
                 editable={editable}
+                initialAssignments={itemsAssignments?.find(a => a.item_id === it.id)}
                 onCheck={handleItemCheck}
                 onCreate={handleAddNewItem}
                 onEdit={handleUpdateItem}
@@ -510,7 +531,7 @@ export default function TicketDetail({
               fullWidth
               disabled={loading}
               onClick={handleAssignItems}
-              startIcon={loading && <CircularProgress />}
+              startIcon={loading && <CircularProgress size={'small'} />}
             >
               {loading ? 'Guardando...' : 'Actualizar items'}
             </Button>

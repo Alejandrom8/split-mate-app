@@ -24,7 +24,7 @@ export default function SplitMateAppBar({ onSettings = () => {} }) {
   const open = Boolean(anchorEl);
   const { user } = useAuth();
   const router = useRouter();
-  const shouldShowAppVar = ['/login', '/logout', '/space/[id]/ticket/[ticket_id]'].find(path => path === router.pathname) === undefined && user;
+  const shouldShowAppVar = ['/login', '/logout', '/space/[id]/ticket/[ticket_id]', '/about'].find(path => path === router.pathname) === undefined && user;
 
   const handleOpenMenu = (event) => setAnchorEl(event.currentTarget);
   const handleCloseMenu = () => setAnchorEl(null);
