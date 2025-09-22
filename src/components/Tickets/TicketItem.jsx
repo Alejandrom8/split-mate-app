@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import {
   Card,
   CardContent,
@@ -13,22 +13,29 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import { fmtMoney } from "@/shared/utils";
+import NumericInput from "@/components/Form/NumericInput";
+import MiniNumericInput from "@/components/Form/NumericInput";
 
 export default function TicketItem({ item, selectable, selected, editable, currency, onCheck, onEdit, onDelete }) {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isEditingItemTotal, setIsEditingItemTotal] = useState(false);
 
   const [itemName, setItemName] = useState(item?.name)
   const [itemQuantity, setItemQuantity] = useState(item?.total_quantity);
   const [itemUnitPrice, setItemUnitPrice] = useState(item?.unit_price);
-  const itemTotal = useMemo(() => itemQuantity * itemUnitPrice, [itemQuantity, itemUnitPrice]);
+  const [itemTotal, setItemTotal] = useState(item?.total_price);
 
   const qty = itemQuantity ?? 0;
+  const [selectedQty, setSelectedQty] = useState(qty);
   const unit = itemUnitPrice != null ? fmtMoney(itemUnitPrice, currency) : "—";
   const total =
     itemTotal != null ? fmtMoney(itemTotal, currency) : "—";
 
+  const toggleIsEditingItemTotal = () => {
+    setIsEditingItemTotal(!isEditingItemTotal);
+  };
 
   const handleCancel = () => {
     setEditOpen(false);
@@ -39,7 +46,14 @@ export default function TicketItem({ item, selectable, selected, editable, curre
   }
 
   const handleChange = (event) => {
-    onCheck(item, event.target.checked);
+    onCheck({
+      ...item,
+      total_quantity: selectedQty,
+    }, event.target.checked);
+  };
+
+  const handleQuantityChange = (newQty) => {
+    setSelectedQty(newQty);
   };
 
   const handleEditSubmit = (e) => {
@@ -77,6 +91,25 @@ export default function TicketItem({ item, selectable, selected, editable, curre
       });
   }
 
+  useEffect(() => {
+    if (isEditingItemTotal) {
+      if (itemQuantity > 0) {
+        setItemUnitPrice(itemTotal / itemQuantity);
+      } else {
+        setItemUnitPrice(0);
+      }
+    } else {
+      setItemTotal(itemUnitPrice * itemQuantity);
+    }
+  }, [isEditingItemTotal, itemTotal, itemQuantity, itemUnitPrice]);
+
+  useEffect(() => {
+    onCheck({
+      ...item,
+      total_quantity: selectedQty,
+    }, selected);
+  }, [selectedQty]);
+
   return <>
     <Card
       variant="outlined"
@@ -93,7 +126,6 @@ export default function TicketItem({ item, selectable, selected, editable, curre
           boxShadow: 3,
         },
       }}
-      onClick={() => onCheck(item, !selected)}
     >
       {/* fila superior: icono + nombre + acciones */}
       <Stack direction="row" alignItems="center" spacing={1.5}>
@@ -119,6 +151,13 @@ export default function TicketItem({ item, selectable, selected, editable, curre
         </Typography>
 
         <Stack direction="row" spacing={0.5}>
+          {
+            selectable && <MiniNumericInput
+              value={selectedQty}
+              onChange={handleQuantityChange}
+              min={1} max={qty}
+            />
+          }
           {
             selectable && <Checkbox
               checked={selected}
@@ -242,18 +281,36 @@ export default function TicketItem({ item, selectable, selected, editable, curre
                     hiddenLabel
                     variant={'outlined'}
                     label={'Precio unitario'}
-                    disabled={loading}
+                    disabled={loading || isEditingItemTotal}
+                    helperText={
+                      isEditingItemTotal && <Stack direction={'row'} flexWrap={'nowrap'} alignItems={'center'} spacing={1}>
+                        <Typography variant={'caption'}>
+                          Calculado en base al total y a la cantidad
+                        </Typography>
+                        <Button size={'small'} onClick={toggleIsEditingItemTotal}>
+                          Editar
+                        </Button>
+                      </Stack>
+                  }
                   />
                   <TextField
                     value={itemTotal}
+                    onChange={(e) => setItemTotal(e.target.value)}
                     type={'number'}
                     placeholder={'Total'}
                     fullWidth
                     hiddenLabel
                     variant={'outlined'}
                     label={'Total'}
-                    disabled
-                    helperText={'El total es calculado en base al precio unitario y a la cantidad'}
+                    disabled={loading || !isEditingItemTotal}
+                    helperText={!isEditingItemTotal && <Stack direction={'row'} flexWrap={'nowrap'} alignItems={'center'} spacing={1}>
+                      <Typography variant={'caption'}>
+                        Calculado en base al precio unitario y a la cantidad
+                      </Typography>
+                      <Button size={'small'} onClick={toggleIsEditingItemTotal}>
+                        Editar
+                      </Button>
+                    </Stack>}
                   />
                 </Stack>
               </CardContent>

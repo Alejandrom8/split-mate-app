@@ -42,10 +42,10 @@ import TicketCard from "@/components/Tickets/TicketCard";
 import {fmtMoney} from "@/shared/utils";
 import EmptySection from "@/components/App/EmptySection";
 import {useSpeedDial} from "@/context/SpeedDialContext";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import {useSnackbar} from "notistack";
 import clientManager from "@/shared/clientManager";
 import LoadingSection from "@/components/App/LoadingSection";
+import AvatarGroupTight from "@/components/App/AvatarGroupTight";
 
 // ---------- Helpers ----------
 // ---------- Mock data ----------
@@ -81,50 +81,10 @@ function SummaryStat({ icon, label, value, hint, color = "primary.main" }) {
   );
 }
 
-function BalanceBoard({ balances }) {
-  return (
-    <Card variant="outlined">
-      <CardHeader title="Balances por persona" />
-      <CardContent>
-        <List dense>
-          {balances.map((b) => (
-            <ListItem key={b.userId} secondaryAction={
-              b.net >= 0
-                ? <Chip color="success" label={`+ ${fmtMoney(b.net)}`} />
-                : <Chip color="warning" label={`- ${fmtMoney(-b.net)}`} />
-            }>
-              <ListItemText primary={b.name} />
-            </ListItem>
-          ))}
-        </List>
-      </CardContent>
-    </Card>
-  );
-}
-
-// Avatares compactos
-function AvatarGroupTight({ members }) {
-  return (
-    <Stack direction="row" spacing={-0.5}>
-      {members.slice(0, 5).map((m) => (
-        <Avatar key={m.id} src={m?.profile_image_url} alt={m?.username} sx={{ width: 28, height: 28, border: "2px solid #fff" }} />
-      ))}
-      {members.length > 5 && (
-        <Avatar sx={{ width: 28, height: 28, bgcolor: "grey.300", color: "text.primary", fontSize: 12 }}>
-          +{members.length - 5}
-        </Avatar>
-      )}
-    </Stack>
-  );
-}
-
 // ---------- Página Detalle de espacio ----------
 function SpaceDetailPage({ authHeader, initialData, initialEventTickets }) {
   const [tab, setTab] = React.useState(0);
   const [tickets, setTickets] = React.useState(initialEventTickets);
-  const [members, setMembers] = React.useState(mockMembers);
-  const [balances, setBalances] = React.useState(mockBalances);
-  const [selectedTicketId, setSelectedTicketId] = React.useState(tickets[0]?.id || null);
   const [shareOpen, setShareOpen] = useState(false);
   const router = useRouter();
   const { onCloseUploadTicket } = useSpeedDial();
@@ -135,7 +95,7 @@ function SpaceDetailPage({ authHeader, initialData, initialEventTickets }) {
 
   const handleTicketUploaded = (newTicket) => {
     onCloseUploadTicket();
-    router.push(`/space/${initialData?.id}/ticket/${newTicket.id}`);
+    router.push(`/space/${initialData?.id}/ticket/${newTicket.ticket_id}`);
   };
 
   const handleDeleteCompleted = async () => {
@@ -157,6 +117,13 @@ function SpaceDetailPage({ authHeader, initialData, initialEventTickets }) {
         <meta name="description" content="Split Mate - separa gastos con tus amigos" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
+
+        {/* Open Graph básico */}
+        <meta property="og:title" content={`Split Mate | ${initialData?.name}`} />
+        <meta property="og:description" content="Split Mate - separa gastos con tus amigos" />
+        <meta property="og:image" content="https://split-mate-app.vercel.app/favicon.ico" />
+        <meta property="og:url" content="https://split-mate-app.vercel.app/" />
+        <meta property="og:type" content="website" />
       </Head>
 
       <CreateSpaceSpeedDial
@@ -166,65 +133,75 @@ function SpaceDetailPage({ authHeader, initialData, initialEventTickets }) {
         onTicketUploaded={handleTicketUploaded}
       />
 
-      <Container sx={{ py: 3, minHeight: '100vh' }}>
-        {/* Navegación */}
-        <Breadcrumbs sx={{ pb: 3 }} separator={<NavigateNextIcon fontSize="small" />}>
-          <Link color="primary" href="/" component={NextLink} sx={{ display: 'flex', alignItems: 'center' }}>
-            <HomeIcon fontSize={'small'} sx={{ mr: 1 }}/>
-            Inicio
-          </Link>
-          <Typography key="3" sx={{ color: 'text.primary' }}>
-            {initialData?.name}
-          </Typography>
-        </Breadcrumbs>
-
-        {/* Header del espacio */}
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ xs: "flex-start", sm: "center" }} justifyContent="space-between" sx={{ mb: 2 }}>
-          <Stack spacing={0.5}>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Typography variant="h5" fontWeight={800}>{initialData?.name}</Typography>
-              <Chip size="small" color="primary" label={initialData?.currency} />
-            </Stack>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <AvatarGroupTight members={initialData?.members} />
-              <Typography variant="body2" color="text.secondary">
-                {initialData?.members_count} miembros · {initialData?.tickets_count} tickets
+        <Box sx={{
+          py: 3,
+          px: 1,
+          pb: 0,
+          backgroundColor: '#fff',
+          boxShadow: "0 2px 10px rgba(11,18,32,0.10)",
+          borderBottom: '2px solid rgba(0, 0, 0, 0.1)',
+        }}>
+          <Container>
+            {/* Navegación */}
+            <Breadcrumbs sx={{ pb: 3 }} separator={<NavigateNextIcon fontSize="small" />}>
+              <Link color="primary" href="/" component={NextLink} sx={{ display: 'flex', alignItems: 'center' }}>
+                <HomeIcon fontSize={'small'} sx={{ mr: 1 }}/>
+                Inicio
+              </Link>
+              <Typography key="3" sx={{ color: 'text.primary' }}>
+                {initialData?.name}
               </Typography>
+            </Breadcrumbs>
+
+            {/* Header del espacio */}
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ xs: "flex-start", sm: "center" }} justifyContent="space-between" sx={{ mb: 2 }}>
+              <Stack spacing={0.5}>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Typography variant="h5" fontWeight={800}>{initialData?.name}</Typography>
+                  <Chip size="small" color="primary" label={initialData?.currency} />
+                </Stack>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <AvatarGroupTight members={initialData?.members} />
+                  <Typography variant="body2" color="text.secondary">
+                    {initialData?.members_count} miembros · {initialData?.tickets_count} tickets
+                  </Typography>
+                </Stack>
+                <Typography variant={'body1'} sx={{ color: '#777', fontWeight: '500', fontStyle: 'italic' }}>
+                  {initialData?.description}
+                </Typography>
+              </Stack>
+              <Stack direction="row" spacing={1}>
+                <Button variant="soft" startIcon={<PersonAddAlt1 />} onClick={() => setShareOpen(true)}>Invitar</Button>
+                <ShareDialog
+                  open={shareOpen}
+                  onClose={() => setShareOpen(false)}
+                  shareUrl={
+                    typeof window !== "undefined"
+                      ? `${window.location.href}/join`
+                      : "/"
+                  }
+                />
+                <Button variant="gradient" startIcon={<Paid />}>Saldar cuentas</Button>
+              </Stack>
             </Stack>
-            <Typography variant={'body1'}>
-              {initialData?.description}
-            </Typography>
-          </Stack>
-          <Stack direction="row" spacing={1}>
-            <Button variant="outlined" startIcon={<PersonAddAlt1 />} onClick={() => setShareOpen(true)}>Invitar</Button>
-            <ShareDialog
-              open={shareOpen}
-              onClose={() => setShareOpen(false)}
-              shareUrl={
-                typeof window !== "undefined"
-                  ? `${window.location.href}/join`
-                  : "/"
-              }
-            />
-            <Button variant="contained" startIcon={<Paid />}>Settle up</Button>
-          </Stack>
-        </Stack>
 
-        {/* Tabs */}
-        <Tabs
-          value={tab}
-          onChange={(_, v) => setTab(v)}
-          scrollButtons
-          allowScrollButtonsMobile
-          variant={isSm ? 'fullWidth' : 'standard'}
-          sx={{ mb: 2, borderBottom: '1px solid rgba(0, 0, 0, 0.1)' }}
-        >
-          <Tab icon={<ReceiptLong />} iconPosition="start" label="Tickets" />
-          <Tab icon={<Info />} iconPosition="start" label="Balance" />
-          <Tab icon={<People />} iconPosition="start" label="Miembros" />
-          {/*<Tab icon={<TimelineIcon />} iconPosition="start" label="Actividad" />*/}
-        </Tabs>
+            {/* Tabs */}
+            <Tabs
+              value={tab}
+              onChange={(_, v) => setTab(v)}
+              scrollButtons
+              allowScrollButtonsMobile
+              variant={isSm ? 'fullWidth' : 'standard'}
+            >
+              <Tab icon={<ReceiptLong />} iconPosition="start" label="Tickets" />
+              <Tab icon={<Info />} iconPosition="start" label="Balance" />
+              <Tab icon={<People />} iconPosition="start" label="Miembros" />
+              {/*<Tab icon={<TimelineIcon />} iconPosition="start" label="Actividad" />*/}
+            </Tabs>
+          </Container>
+        </Box>
 
+        <Container sx={{ py: 3, mt: 1, minHeight: '50vh' }}>
         {/* Tab 1 - Tickets */}
         {tab === 0 && (
           <>
@@ -321,7 +298,7 @@ function SpaceDetailPage({ authHeader, initialData, initialEventTickets }) {
             </CardContent>
           </Card>
         )}
-      </Container>
+        </Container>
     </>
   );
 }

@@ -46,7 +46,7 @@ function ProfilePage({ authHeader }) {
     setEmail(user?.email);
   }, [user]);
 
-  return <Container sx={{ py: 3, minHeight: '100vh' }}>
+  return <Container sx={{ py: 3, height: '90vh' }}>
     <Breadcrumbs sx={{ py: 2 }} separator={<NavigateNextIcon fontSize="small" />}>
       <Link color="primary" href="/" component={NextLink} sx={{ display: 'flex', alignItems: 'center' }}>
         <HomeIcon fontSize={'small'} sx={{ mr: 1 }}/>
@@ -57,14 +57,10 @@ function ProfilePage({ authHeader }) {
       </Typography>
     </Breadcrumbs>
     <Box
-      display="flex"
-      alignItems="flex-start"
-      justifyContent="center"
-      minHeight="90vh"
-      bgcolor="background.default"
       px={2}
+      sx={{ minHeight: '75vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
     >
-      <Paper elevation={0} sx={{ p: 4, borderRadius: 4, width: { xs: '100%', md: '50%' } }}>
+      <Paper elevation={3} sx={{ p: 4, borderRadius: 2, width: { xs: '100%', md: '50%' } }}>
         <Stack spacing={2} alignItems="center">
           <ProfileAvatarEditor
             user={user}

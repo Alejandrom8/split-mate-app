@@ -39,7 +39,7 @@ export default async function handler(req, res) {
     }
     return res.status(404).json({})
   } catch (error) {
-    console.error('[api/item] Error:', error?.response?.data || error);
+    console.error('[api/tickets/[id]/items/assign] Error:', error?.response?.data || error);
 
     const status = error?.response?.status || 500;
     const body =

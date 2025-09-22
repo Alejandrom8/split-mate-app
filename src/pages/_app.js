@@ -1,5 +1,5 @@
 import {ThemeProvider, CssBaseline, GlobalStyles} from '@mui/material';
-import { ThemeLight } from '../components/Theme';
+import { ThemeVolt } from '../components/Theme';
 import {SnackbarProvider} from "notistack";
 import {CacheProvider} from "@emotion/react";
 import Head from "next/head";
@@ -21,7 +21,7 @@ export default function App(props) {
     </Head>
     <AuthProvider>
       <SpeedDialProvider>
-        <ThemeProvider theme={ThemeLight}>
+        <ThemeProvider theme={ThemeVolt}>
           <CssBaseline />
           <SnackbarProvider
             maxSnack={3}

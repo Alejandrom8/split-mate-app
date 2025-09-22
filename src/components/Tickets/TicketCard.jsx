@@ -6,17 +6,20 @@ import {
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import { fmtMoney } from "@/shared/utils";
+import {fmtDate, fmtMoney} from "@/shared/utils";
 import { TICKET_STATUS_MAP } from "@/shared/constants";
-import {useState} from "react";
+import {useMemo, useState} from "react";
 import {useSnackbar} from "notistack";
 import clientManager from "@/shared/clientManager";
+import {useAuth} from "@/context/AuthContext";
 
 export default function TicketRow({ ticket, onSelect, onDeleteCompleted }) {
   const [menuEl, setMenuEl] = React.useState(null);
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [loading, setLoading] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
+  const { user } = useAuth();
+  const isOwner = useMemo(() => ticket?.owner?.user_id === user.id, [ticket]);
 
   const openMenu = (e) => {
     e.stopPropagation();
@@ -54,9 +57,7 @@ export default function TicketRow({ ticket, onSelect, onDeleteCompleted }) {
 
   const statusCfg = TICKET_STATUS_MAP[ticket?.validation_status] || {};
   const establishment = ticket?.establishment_name || "Ticket sin nombre";
-  const ticketDate = ticket?.ticket_date
-    ? new Date(ticket.ticket_date).toLocaleString("es-MX")
-    : "Fecha desconocida";
+  const ticketDate = fmtDate(ticket?.ticket_date);
 
   return (
     <>
@@ -93,30 +94,34 @@ export default function TicketRow({ ticket, onSelect, onDeleteCompleted }) {
                   {fmtMoney(ticket?.total_amount)}
                 </Typography>
 
-                <IconButton
-                  aria-label="Más opciones"
-                  onClick={openMenu}
-                  edge="end"
-                  size="small"
-                >
-                  <MoreVertIcon />
-                </IconButton>
+                {
+                  isOwner && <>
+                    <IconButton
+                      aria-label="Más opciones"
+                      onClick={openMenu}
+                      edge="end"
+                      size="small"
+                    >
+                      <MoreVertIcon />
+                    </IconButton>
 
-                <Menu
-                  anchorEl={menuEl}
-                  open={Boolean(menuEl)}
-                  onClose={closeMenu}
-                  anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                  transformOrigin={{ vertical: "top", horizontal: "right" }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <MenuItem onClick={handleDeleteClick}>
-                    <ListItemIcon>
-                      <DeleteOutlineIcon fontSize="small" />
-                    </ListItemIcon>
-                    Borrar ticket
-                  </MenuItem>
-                </Menu>
+                    <Menu
+                      anchorEl={menuEl}
+                      open={Boolean(menuEl)}
+                      onClose={closeMenu}
+                      anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                      transformOrigin={{ vertical: "top", horizontal: "right" }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <MenuItem onClick={handleDeleteClick}>
+                        <ListItemIcon>
+                          <DeleteOutlineIcon fontSize="small" />
+                        </ListItemIcon>
+                        Borrar ticket
+                      </MenuItem>
+                    </Menu>
+                  </>
+                }
               </Stack>
             </Stack>
             <Stack direction="row" spacing={0.5} flexWrap="wrap" gap={0}>
@@ -160,7 +165,7 @@ export default function TicketRow({ ticket, onSelect, onDeleteCompleted }) {
             variant="contained"
             color="error"
             disabled={loading}
-            startIcon={loading ? <CircularProgress /> : <DeleteOutlineIcon />}
+            startIcon={loading ? <CircularProgress size={'small'} /> : <DeleteOutlineIcon />}
           >
             {loading ? 'Borrando ticket...' : 'Borrar'}
           </Button>

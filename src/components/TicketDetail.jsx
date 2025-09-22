@@ -12,46 +12,40 @@ import {
   Button,
   useTheme,
   useMediaQuery,
-  Container, CircularProgress, Dialog, TextField, AvatarGroup, Avatar,
+  Container, CircularProgress,
+  Dialog, TextField, AvatarGroup,
+  Avatar, IconButton, Tooltip, Collapse, Grow,
 } from "@mui/material";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import PlaceIcon from "@mui/icons-material/Place";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import CloseIcon from "@mui/icons-material/Close";
+import EditIcon from "@mui/icons-material/Edit";
 import {fmtDate, fmtMoney} from "@/shared/utils";
 import {TICKET_STATUS_MAP} from "@/shared/constants";
 import {useRouter} from "next/router";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import TicketItem from "@/components/Tickets/TicketItem";
-import {useMemo, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {useSnackbar} from "notistack";
 import clientManager from "@/shared/clientManager";
 import AddIcon from "@mui/icons-material/Add";
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import AvatarGroupTight from "@/components/App/AvatarGroupTight";
+import DatePicker from "@/components/Form/DatePicker";
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
 export default function TicketDetail({
-  selectable,
-  editable,
-  spaceId,
-  ticket,
-  onEdit,
-  onShare,
-  onSplit,
-}) {
+                                       selectable,
+                                       editable,
+                                       spaceId,
+                                       ticket,
+                                     }) {
   const {
-    picture,
-    establishment_name,
-    ticket_date,
-    total_amount,
-    subtotal,
-    taxes,
-    tip,
-    totalWithTip,
+    image_url,
     currency = "MXN",
-    participants = [],
     validation_status = 'hidden',
-    notes,
-    paymentMethod,   // 'Tarjeta', 'Efectivo', etc.
-    category,        // 'Restaurante', 'Super', etc.
-    ocrConfidence,   // 0-1
   } = ticket || {};
   const router = useRouter();
   const theme = useTheme();
@@ -60,14 +54,32 @@ export default function TicketDetail({
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [imageOpen, setImageOpen] = useState(false);
   const itemsTotalSum = useMemo(() => items.reduce((ac, it) => ac + Number(it.total_price), 0), [items]);
 
+  /** TICKET FIELDS */
+  const [ticketEstablishmentName, setTicketEstablishmentName] = useState(ticket?.establishment_name || '');
+  const [ticketDate, setTicketDate] = useState(new Date(ticket?.ticket_date));
+  const [ticketTotal, setTicketTotal] = useState(ticket?.total_amount || 0);
+
+  /** EDIT TICKET FIELDS */
+  const [editTicketEstablishmentName, setEditTicketEstablishmentName] = useState(ticketEstablishmentName);
+  const [editTicketDate, setEditTicketDate] = useState(ticketDate);
+  const [editTicketTotal, setEditTicketTotal] = useState(ticketTotal);
+
+  /** EDIT ITEM FIELDS */
   const [itemName, setItemName] = useState('');
   const [itemQuantity, setItemQuantity] = useState(1);
   const [itemUnitPrice, setItemUnitPrice] = useState(0);
   const itemTotal = useMemo(() => itemQuantity * itemUnitPrice, [itemQuantity, itemUnitPrice]);
 
   const [selectedItems, setSelectedItems] = useState([]);
+  const [showSelectedItems, setShowSelectedItems] = useState(false);
+
+  const toggleShowSelectedItems = () => setShowSelectedItems(!showSelectedItems);
+
+  const totalSumIsCorrect = useMemo(() => Number(ticketTotal) === Number(itemsTotalSum), [ticketTotal, itemsTotalSum]);
 
   const handleUpdateItem = async (updatedItem) => {
     try {
@@ -115,6 +127,34 @@ export default function TicketDetail({
     setItemUnitPrice(0);
   };
 
+  const handleCloseEditWindow = () => {
+    setEditOpen(false);
+    setEditTicketTotal(ticketTotal);
+    setEditTicketDate(ticketDate);
+    setEditTicketEstablishmentName(ticketEstablishmentName);
+  };
+
+  const handleEditTicket = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await clientManager.put(`/tickets/${ticket.id}`, {
+        establishment_name: editTicketEstablishmentName,
+        ticket_date: editTicketDate.toISOString().split("T")[0],
+        total_amount: editTicketTotal,
+      });
+      enqueueSnackbar('Ticket actualizado', { variant: 'info' });
+      setTicketEstablishmentName(editTicketEstablishmentName);
+      setTicketDate(editTicketDate);
+      setTicketTotal(editTicketTotal);
+      setEditOpen(false);
+    } catch (error) {
+      enqueueSnackbar('Error al editar el ticket', {variant: 'error'});
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAddNewItem = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -135,7 +175,14 @@ export default function TicketDetail({
   };
 
   const handleItemSelected = (item) => {
-    setSelectedItems((prev) => [...prev, item]);
+    const prevItems = selectedItems.slice();
+    const itemIndex = prevItems.findIndex(it => it.id === item.id);
+    if (itemIndex === -1) {
+      setSelectedItems((prev) => [...prev, item]);
+    } else {
+      prevItems[itemIndex] = item;
+      setSelectedItems(prevItems);
+    }
   };
 
   const handleItemUnselected = (item) => {
@@ -164,358 +211,479 @@ export default function TicketDetail({
       await clientManager.post(`/tickets/${ticket.id}/items/assign`, {
         items: selectedItems.map((it) => ({id: it.id, total_quantity: it.total_quantity}))
       });
-      enqueueSnackbar('Items assignados', { variant: 'success' });
+      enqueueSnackbar('Items asignados', { variant: 'success' });
     } catch (error) {
-      enqueueSnackbar('Error al assignar los items', {variant: 'error'});
+      enqueueSnackbar('Error al asignar los items', {variant: 'error'});
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    if (selectedItems.length === 0) {
+      setShowSelectedItems(false);
+    }
+  }, [selectedItems]);
+
   return <Container spacing={1}>
-      <Box sx={{ py: 1 }}>
-        <Button
-          onClick={handleCancel}
-          startIcon={<ArrowBackIcon />}
-          variant="text"
-          sx={{ color: "text.primary" }}
-        >
-          Regresar
-        </Button>
-      </Box>
-      {
-        selectable && <Box sx={{ py: 3, px: 3 }}>
-          <Typography variant={'h4'} textAlign={'center'}>
-            Selecciona tus items
-          </Typography>
-        </Box>
-      }
-      <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Card
-          variant="outlined"
-          sx={{ width: { xs: '100%', sm: '75vw', md: '60vw' } }}
-        >
-          <CardHeader
-            sx={{ my: 2 }}
-            avatar={<ReceiptLongIcon />}
-            title={
-              <Stack direction="row" spacing={1} alignItems="center">
-                <Typography variant="h6" fontWeight={800} noWrap>
-                  {establishment_name || "—"}
-                </Typography>
-                {validation_status && (
-                  <Chip
-                    size="small"
-                    color={TICKET_STATUS_MAP[validation_status]?.color || "default"}
-                    label={TICKET_STATUS_MAP[validation_status]?.label || validation_status}
-                  />
-                )}
-              </Stack>
-            }
-            subheader={
-              <Stack direction="row" spacing={2} alignItems="center">
-                <Stack direction="row" spacing={0.5} alignItems="center">
-                  <PlaceIcon fontSize="small" />
-                  <Typography variant="body2" color="text.secondary">
-                    {category || "Sin categoría"}
-                  </Typography>
-                </Stack>
-                <Stack direction="row" spacing={0.5} alignItems="center">
-                  <AccessTimeIcon fontSize="small" />
-                  <Typography variant="body2" color="text.secondary">
-                    {ticket_date ? fmtDate(ticket_date) : "—"}
-                  </Typography>
-                </Stack>
-              </Stack>
-            }
-            action={
+    <Box sx={{ py: 4 }}>
+      <Typography variant={'h4'} textAlign={'center'}>
+        {selectable && 'Selecciona tus items'}
+        {editable && 'Ajusta tu ticket'}
+      </Typography>
+    </Box>
+    <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Card
+        variant="outlined"
+        sx={{
+          width: { xs: '100%', sm: '75vw', md: '50vw' },
+          mb: '22vh'
+        }}
+      >
+        <CardHeader
+          sx={{
+            gap: { xs: 1, sm: 0 }
+          }}
+          avatar={
+            image_url ? (
               <Box
+                component="button"
+                onClick={(e) => { e.stopPropagation(); setImageOpen(true); }}
+                aria-label="Ver imagen del ticket"
+                title="Ver imagen del ticket"
                 sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  // 🔹 en móviles, los avatares se hacen más chicos y pueden envolver
-                  flexWrap: { xs: "wrap", sm: "nowrap" },
-                  gap: { xs: 0.5, sm: 1 },
-                  "& .MuiAvatar-root": {
-                    width: { xs: 28, sm: 34 },
-                    height: { xs: 28, sm: 34 },
-                    fontSize: { xs: "0.75rem", sm: "0.875rem" }
-                  }
+                  p: 0,
+                  border: 0,
+                  background: "none",
+                  cursor: "zoom-in",
+                  lineHeight: 0,
+                  borderRadius: 1.5,
+                  overflow: "hidden",
                 }}
               >
-                <AvatarGroup>
-                  {
-                    participants?.map((user, index) => (
-                      <Avatar
-                        key={index}
-                        src={user?.profile_image_url}
-                        alt={user?.username}
-                        sx={{ width: 36, height: 36 }}
-                      >
-                        {user?.username?.charAt(0)?.toUpperCase()}
-                      </Avatar>
-                    ))
-                  }
-                </AvatarGroup>
-              </Box>
-            }
-            sx={{
-              // 🔹 asegura que el header no colapse
-              flexDirection: { xs: "column", sm: "row" },
-              alignItems: { xs: "flex-start", sm: "center" },
-              gap: { xs: 1, sm: 0 }
-            }}
-          />
-
-          <Divider />
-
-          <CardContent>
-            {
-              editable && <Box p={2}>
-                <Button
-                  variant={'contained'}
-                  color={'secondary'}
-                  fullWidth
-                  startIcon={<AddIcon />}
-                  onClick={() => setAddOpen(true)}
-                >
-                  Agregar Item
-                </Button>
-              </Box>
-            }
-            {
-              items?.map((it, index) => (
-                <TicketItem
-                  item={it}
-                  key={index}
-                  selectable={selectable}
-                  selected={!!selectedItems.find(sIt => sIt.id === it.id)}
-                  editable={editable}
-                  onCheck={handleItemCheck}
-                  onCreate={handleAddNewItem}
-                  onEdit={handleUpdateItem}
-                  onDelete={handleDeleteItem}
-                />
-              ))
-            }
-            <Box sx={{ mb: '150px' }}/>
-            {/* Agregar item */}
-            <Dialog open={addOpen} onClose={handleCloseAddWindow} fullWidth maxWidth="sm">
-              <form onSubmit={handleAddNewItem}>
-                <Card elevation={1}>
-                  <CardHeader title={'Agregar item'} />
-                  <CardContent>
-                    <Stack spacing={2}>
-                      <TextField
-                        value={itemName}
-                        onChange={(e) => setItemName(e.target.value)}
-                        type={'text'}
-                        placeholder={'Nombre'}
-                        fullWidth
-                        label={'Nombre'}
-                        hiddenLabel
-                        variant={'outlined'}
-                        disabled={loading}
-                      />
-                      <TextField
-                        value={itemQuantity}
-                        onChange={(e) => setItemQuantity(e.target.value)}
-                        type={'number'}
-                        placeholder={'Nombre del item'}
-                        fullWidth
-                        hiddenLabel
-                        variant={'outlined'}
-                        label={'Cantidad'}
-                        disabled={loading}
-                      />
-                      <TextField
-                        value={itemUnitPrice}
-                        onChange={(e) => setItemUnitPrice(e.target.value)}
-                        type={'number'}
-                        placeholder={'Precio unitario'}
-                        fullWidth
-                        hiddenLabel
-                        variant={'outlined'}
-                        label={'Precio unitario'}
-                        disabled={loading}
-                      />
-                      <TextField
-                        value={itemTotal}
-                        type={'number'}
-                        placeholder={'Total'}
-                        fullWidth
-                        hiddenLabel
-                        variant={'outlined'}
-                        label={'Total'}
-                        disabled
-                        helperText={'El total es calculado en base al precio unitario y a la cantidad'}
-                      />
-                    </Stack>
-                  </CardContent>
-                  <CardActions sx={{ px: 2, pb: 2, pt: 0 }}>
-                    <Button
-                      variant="outlined"
-                      color="secondary"
-                      fullWidth
-                      onClick={handleCloseAddWindow}
-                      disabled={loading}
-                    >
-                      Cancelar
-                    </Button>
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      color="primary"
-                      fullWidth
-                      disabled={loading}
-                      startIcon={loading ? <CircularProgress size={16} color="inherit" /> : null}
-                    >
-                      {loading ? 'Creando...' : 'Crear'}
-                    </Button>
-                  </CardActions>
-                </Card>
-              </form>
-            </Dialog>
-          </CardContent>
-
-          {
-            isSm && <Card
-              sx={{
-                width: '93vw',
-                position: 'fixed',
-                bottom: 30,
-                left: 'calc(50vw - (93vw / 2))',
-                borderWidth: 2,
-                borderStyle: 'solid',
-                borderColor: 'primary.main',
-              }}
-            >
-              <CardContent>
                 <Box
+                  component="img"
+                  src={image_url}
+                  alt="Ticket"
                   sx={{
-                    my: 1,
-                    height: 1,
-                    background:
-                      "repeating-linear-gradient(90deg, rgba(0,0,0,.35), rgba(0,0,0,.35) 6px, transparent 6px, transparent 12px)",
+                    width: 44,
+                    height: 44,
+                    objectFit: "cover",
+                    display: "block",
+                    borderRadius: 1.5,
+                    boxShadow: 1,
                   }}
                 />
-                {
-                 editable && <>
-                    <Row
-                      label="Total actualizado"
-                      value={itemsTotalSum != null ? fmtMoney(itemsTotalSum, currency) : "—"}
-                    />
-                    <Row
-                      label="TOTAL DEL TICKET"
-                      value={total_amount != null ? fmtMoney(total_amount, currency) : "—"}
-                      strong
-                    />
-                    {totalWithTip != null && totalWithTip > total_amount && (
-                      <Row
-                        label="TOTAL C/ PROP."
-                        value={fmtMoney(totalWithTip, currency)}
-                        strong
-                      />
-                    )}
-                 </>
-                }
-                {
-                  selectable && <>
-                    <Row
-                      label="Items seleccionados"
-                      value={selectedItems.length}
-                    />
-                    <Row
-                      label="Total seleccionado"
-                      value={selectedItems.length ? fmtMoney(selectedItems.reduce((ac, it) => ac + Number(it.total_price), 0), currency) : 0}
-                    />
-                  </>
-                }
-              </CardContent>
-              <CardActions>
-                {
-                  editable && <>
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      color="primary"
-                      fullWidth
-                      disabled={loading}
-                      onClick={handlePublishTicket}
-                      startIcon={loading && <CircularProgress />}
-                    >
-                      {loading ? 'Publicando...' : 'Publicar ticket'}
-                    </Button>
-                    <Button
-                      type="submit"
-                      variant="outlined"
-                      color="primary"
-                      fullWidth
-                      disabled={loading}
-                      onClick={handleCancel}
-                    >
-                      Guardar y regresar
-                    </Button>
-                  </>
-                }
-                {
-                  selectable && <>
-                    <Button
-                      type="submit"
-                      variant="outlined"
-                      color="primary"
-                      fullWidth
-                      disabled={loading}
-                      onClick={handleCancel}
-                    >
-                      Cancelar
-                    </Button>
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      color="primary"
-                      fullWidth
-                      disabled={loading}
-                      onClick={handleAssignItems}
-                      startIcon={loading && <CircularProgress />}
-                    >
-                      {loading ? 'Guardando...' : 'Actualizar items'}
-                    </Button>
-                  </>
-                }
-              </CardActions>
-            </Card>
+              </Box>
+            ) : (
+              <ReceiptLongIcon />
+            )
           }
+          title={
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Typography variant="h6" fontWeight={800} noWrap>
+                {String(ticketEstablishmentName)}
+              </Typography>
+              {validation_status && (
+                <Chip
+                  size="small"
+                  color={TICKET_STATUS_MAP[validation_status]?.color || "default"}
+                  label={TICKET_STATUS_MAP[validation_status]?.label || validation_status}
+                />
+              )}
+            </Stack>
+          }
+          subheader={
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <CalendarMonthIcon fontSize="small" />
+                <Typography variant="body2" color="text.secondary">
+                  {fmtDate(ticketDate)}
+                </Typography>
+              </Stack>
+              {/* Avatares de participantes */}
+              {/*<AvatarGroupTight members={participants} size={'small'} />*/}
+            </Stack>
+          }
+          action={
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1.25,
+              }}
+              onClick={(e) => e.stopPropagation()} // evita que el click dispare acciones del Card
+            >
+              {/* BOTÓN EDITAR (esquina superior derecha) */}
+              {editable && (
+                <Tooltip title={'Editar ticket'}>
+                  <IconButton
+                    aria-label="Editar ticket"
+                    onClick={() => setEditOpen(true)}
+                    size="small"
+                  >
+                    <EditIcon />
+                  </IconButton>
+                </Tooltip>
+              )}
+            </Box>
+          }
+        />
 
+        <Divider />
+
+        <CardContent sx={{ px: 1.5 }}>
           {
-            !isSm && <CardActions sx={{ p: 2, pt: 0, justifyContent: "space-between" }}>
+            editable && <Box sx={{ mb: 3 }}>
               <Button
-                type="submit"
-                variant="contained"
-                color="primary"
+                variant={'outlined'}
+                color={'secondary'}
                 fullWidth
-                onClick={handlePublishTicket}
+                startIcon={<AddIcon />}
+                onClick={() => setAddOpen(true)}
               >
-                Publicar ticket
+                Agregar Item
               </Button>
-              <Button
-                type="submit"
-                variant="outlined"
-                color="primary"
-                fullWidth
-                onClick={handleCancel}
-              >
-                Guardar y salir
-              </Button>
-            </CardActions>
+            </Box>
           }
-        </Card>
+          {
+            items?.map((it, index) => (
+              <TicketItem
+                item={it}
+                key={index}
+                selectable={selectable}
+                selected={!!selectedItems.find(sIt => sIt.id === it.id)}
+                editable={editable}
+                onCheck={handleItemCheck}
+                onCreate={handleAddNewItem}
+                onEdit={handleUpdateItem}
+                onDelete={handleDeleteItem}
+              />
+            ))
+          }
+        </CardContent>
+      </Card>
+    </Box>
+
+    {/** TARJETA DE ACCIONES  */}
+    <Card
+      sx={{
+        width: { xs: '100vw', md: '50vw' },
+        position: 'fixed',
+        //bottom: 30,
+        left: { xs: 0, md: 'calc(50vw - (50vw / 2))' },
+        bottom: 0,
+        borderTopRightRadius: 25,
+        borderTopLeftRadius: 25,
+        borderBottomRightRadius: 0,
+        borderBottomLeftRadius: 0,
+        boxShadow: "0 -8px 20px rgba(11,18,32,0.10)",
+        backgroundColor: 'rgba(255, 255, 255, 0.7)',
+        backdropFilter: 'blur(10px)',
+        // borderTopWidth: 1,
+        // borderStyle: 'solid',
+        // borderColor: 'primary.main',
+      }}
+    >
+      <CardContent>
+        {
+          editable && <>
+            <Row
+              label="Suma de los items"
+              value={fmtMoney(itemsTotalSum, currency)}
+            />
+            <Row
+              label="TOTAL"
+              value={fmtMoney(ticketTotal, currency)}
+              strong
+              primaryStyles={{
+                fontWeight: 'bold'
+              }}
+              secondaryStyles={{
+                color: totalSumIsCorrect ? 'primary.main' : 'error.main',
+              }}
+            />
+            {
+              !totalSumIsCorrect && (
+                <Typography variant={'caption'} sx={{ textAlign: 'center', fontStyle: 'italic' }}>
+                  <strong>WARN</strong>: Corrige los datos de los items para que cuadren con la suma final del ticket
+                </Typography>
+              )
+            }
+          </>
+        }
+        {
+          selectable && <>
+            <Row
+              label={
+                <Stack direction={'row'} spacing={1} alignItems={'center'}>
+                  <Typography variant="body2">Items Seleccionados</Typography>
+                  {
+                    selectedItems.length > 0 && <Tooltip title={'Mostrar Items'}>
+                      <IconButton size={'small'} onClick={toggleShowSelectedItems}>
+                        {
+                          showSelectedItems
+                            ? <KeyboardArrowUpIcon fontSize={'small'} />
+                            : <KeyboardArrowDownIcon fontSize={'small'} />
+                        }
+                      </IconButton>
+                    </Tooltip>
+                  }
+                </Stack>
+              }
+              value={selectedItems.length ? selectedItems.reduce((ac, it) => ac + Number(it.total_quantity), 0) : 0}
+            />
+            <Collapse in={selectedItems?.length > 0 && showSelectedItems}>
+              {
+                selectedItems.map((sItem) => (
+                  <Row
+                    key={sItem.id}
+                    label={sItem.name}
+                    value={Math.floor(Number(sItem.total_quantity))}
+                    primaryStyles={{
+                      color: '#777'
+                    }}
+                    secondaryStyles={{
+                      color: '#777'
+                    }}
+                  />
+                ))
+              }
+              <Box sx={{ mb: 2 }} />
+            </Collapse>
+            <Row
+              label="Total"
+              value={selectedItems.length ? fmtMoney(selectedItems.reduce((ac, it) => ac + (Number(it.unit_price) * Number(it.total_quantity)), 0), currency) : 0}
+              strong
+              primaryStyles={{
+                fontWeight: 'bold'
+              }}
+              secondaryStyles={{
+                color: 'primary.main',
+              }}
+            />
+          </>
+        }
+      </CardContent>
+      <CardActions sx={{ pb: 2 }}>
+        {
+          editable && <>
+            <Button
+              type="submit"
+              variant="outlined"
+              color="primary"
+              fullWidth
+              disabled={loading}
+              onClick={handleCancel}
+            >
+              Regresar
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              fullWidth
+              disabled={loading || !totalSumIsCorrect}
+              onClick={handlePublishTicket}
+              startIcon={loading && <CircularProgress size={'small'} />}
+            >
+              {loading ? 'Publicando...' : 'Publicar ticket'}
+            </Button>
+          </>
+        }
+        {
+          selectable && <>
+            <Button
+              type="submit"
+              variant="outlined"
+              color="primary"
+              fullWidth
+              disabled={loading}
+              onClick={handleCancel}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              fullWidth
+              disabled={loading}
+              onClick={handleAssignItems}
+              startIcon={loading && <CircularProgress />}
+            >
+              {loading ? 'Guardando...' : 'Actualizar items'}
+            </Button>
+          </>
+        }
+      </CardActions>
+    </Card>
+
+    {/* Abrir Imagen */}
+    <Dialog open={imageOpen} onClose={() => setImageOpen(false)} maxWidth="md" fullWidth>
+      <Box sx={{ position: "relative" }}>
+        <IconButton
+          aria-label="Cerrar"
+          onClick={() => setImageOpen(false)}
+          sx={{ position: "absolute", top: 8, right: 8, zIndex: 1 }}
+        >
+          <CloseIcon />
+        </IconButton>
+        <Box
+          component="img"
+          src={image_url ?? ""}
+          alt="Ticket grande"
+          sx={{
+            width: "100%",
+            height: "auto",
+            display: "block",
+          }}
+        />
       </Box>
+    </Dialog>
+    {/* Agregar item */}
+    <Dialog open={addOpen} onClose={handleCloseAddWindow} fullWidth maxWidth="sm">
+      <form onSubmit={handleAddNewItem}>
+        <Card elevation={1}>
+          <CardHeader title={'Agregar item'} />
+          <CardContent>
+            <Stack spacing={2}>
+              <TextField
+                value={itemName}
+                onChange={(e) => setItemName(e.target.value)}
+                type={'text'}
+                placeholder={'Nombre'}
+                fullWidth
+                label={'Nombre'}
+                hiddenLabel
+                variant={'outlined'}
+                disabled={loading}
+              />
+              <TextField
+                value={itemQuantity}
+                onChange={(e) => setItemQuantity(e.target.value)}
+                type={'number'}
+                placeholder={'Nombre del item'}
+                fullWidth
+                hiddenLabel
+                variant={'outlined'}
+                label={'Cantidad'}
+                disabled={loading}
+              />
+              <TextField
+                value={itemUnitPrice}
+                onChange={(e) => setItemUnitPrice(e.target.value)}
+                type={'number'}
+                placeholder={'Precio unitario'}
+                fullWidth
+                hiddenLabel
+                variant={'outlined'}
+                label={'Precio unitario'}
+                disabled={loading}
+              />
+              <TextField
+                value={itemTotal}
+                type={'number'}
+                placeholder={'Total'}
+                fullWidth
+                hiddenLabel
+                variant={'outlined'}
+                label={'Total'}
+                disabled
+                helperText={'El total es calculado en base al precio unitario y a la cantidad'}
+              />
+            </Stack>
+          </CardContent>
+          <CardActions sx={{ px: 2, pb: 2, pt: 0 }}>
+            <Button
+              variant="outlined"
+              color="secondary"
+              fullWidth
+              onClick={handleCloseAddWindow}
+              disabled={loading}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              fullWidth
+              disabled={loading}
+              startIcon={loading ? <CircularProgress size={16} color="inherit" /> : null}
+            >
+              {loading ? 'Creando...' : 'Crear'}
+            </Button>
+          </CardActions>
+        </Card>
+      </form>
+    </Dialog>
+    {/* Editar ticket */}
+    <Dialog open={editOpen} onClose={handleCloseEditWindow} fullWidth maxWidth="sm">
+      <form onSubmit={handleEditTicket}>
+        <Card elevation={1}>
+          <CardHeader title={'Editar ticket'} />
+          <CardContent>
+            <Stack spacing={2}>
+              <TextField
+                value={editTicketEstablishmentName}
+                onChange={(e) => setEditTicketEstablishmentName(e.target.value)}
+                type={'text'}
+                placeholder={'Nombre del establecimiento'}
+                fullWidth
+                label={'Nombre del establecimiento'}
+                hiddenLabel
+                variant={'outlined'}
+                disabled={loading}
+              />
+              <DatePicker
+                label="Fecha del ticket"
+                value={editTicketDate}
+                onChange={setEditTicketDate}
+                disableFuture
+              />
+              <TextField
+                value={editTicketTotal}
+                onChange={(e) => setEditTicketTotal(e.target.value)}
+                type={'number'}
+                placeholder={'Total'}
+                fullWidth
+                label={'Total'}
+                hiddenLabel
+                variant={'outlined'}
+                disabled={loading}
+              />
+            </Stack>
+          </CardContent>
+          <CardActions sx={{ px: 2, pb: 2, pt: 0 }}>
+            <Button
+              variant="outlined"
+              color="secondary"
+              fullWidth
+              onClick={handleCloseEditWindow}
+              disabled={loading}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              fullWidth
+              disabled={loading}
+              startIcon={loading ? <CircularProgress size={16} color="inherit" /> : null}
+            >
+              {loading ? 'Guardando...' : 'Guardar'}
+            </Button>
+          </CardActions>
+        </Card>
+      </form>
+    </Dialog>
   </Container>;
 }
 
 /* Sub-componente para filas de totales alineadas tipo ticket */
-function Row({ label, value, strong }) {
+function Row({ label, value, strong, primaryStyles, secondaryStyles }) {
   return (
     <Box
       sx={{
@@ -524,16 +692,27 @@ function Row({ label, value, strong }) {
         alignItems: "baseline",
       }}
     >
+      {
+        typeof label === 'string' && <Typography
+          variant="body2"
+          sx={{
+            ...primaryStyles,
+          }}
+          color={strong ? "inherit" : "text.secondary"}
+        >
+          {label}
+        </Typography>
+      }
+      {
+        typeof label !== 'string' && label
+      }
       <Typography
         variant="body2"
-        sx={{ letterSpacing: ".06em" }}
-        color={strong ? "inherit" : "text.secondary"}
-      >
-        {label}
-      </Typography>
-      <Typography
-        variant="body2"
-        sx={{ textAlign: "right", fontWeight: strong ? 800 : 600 }}
+        sx={{
+          textAlign: "right",
+          fontWeight: strong ? 800 : 600,
+          ...secondaryStyles,
+        }}
       >
         {value}
       </Typography>

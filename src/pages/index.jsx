@@ -30,7 +30,7 @@ function Home({ initialSpaces }) {
   const { enqueueSnackbar } = useSnackbar();
   const [query, setQuery] = useState('');
 
-  const fetchSpaces = useCallback(async (q) => {
+  const fetchSpaces = useCallback(async (q = '') => {
     setLoading(true);
     try {
       const _query = typeof q === 'string' ? q : query;
@@ -65,6 +65,15 @@ function Home({ initialSpaces }) {
       })
   };
 
+  const handleSpaceDeletion = (item) => {
+    const prevSpaces = spaces.slice();
+    const deletedItemIndex = spaces.find(s => s.id === item.id);
+    console.log(deletedItemIndex);
+    if (deletedItemIndex === -1) return;
+    prevSpaces.splice(deletedItemIndex, 1);
+    setSpaces(prevSpaces);
+  };
+
   return (
     <>
       <Head>
@@ -72,12 +81,19 @@ function Home({ initialSpaces }) {
         <meta name="description" content="Split Mate - separa gastos con tus amigos" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
+
+        {/* Open Graph básico */}
+        <meta property="og:title" content={`Split Mate`} />
+        <meta property="og:description" content="Split Mate - separa gastos con tus amigos" />
+        <meta property="og:image" content="https://split-mate-app.vercel.app/favicon.ico" />
+        <meta property="og:url" content="https://split-mate-app.vercel.app/" />
+        <meta property="og:type" content="website" />
       </Head>
 
       <CreateSpeedDial onSpaceCreated={handleCreated} />
 
       <Box sx={{ minHeight: 600, pb: 10 }}>
-        <Box sx={{ backgroundColor: 'rgba(0, 0, 0, 0.05)', mb: 5, p: 6 }}>
+        <Box sx={{ my: 3, p: 3 }}>
           <Container>
             <Stack
               direction={'column'}
@@ -85,11 +101,11 @@ function Home({ initialSpaces }) {
               alignItems={'center'}
               justifyContent="space-between"
             >
-              <Typography variant="h4">
+              <Typography variant={'h4'}>
                 Tus espacios
               </Typography>
               <TextField
-                size="small"
+                size={'small'}
                 sx={{ width: { xs: '80vw', sm: '60vw', md: '40vw' }, borderRadius: 10 }}
                 variant={'outlined'}
                 value={query}
@@ -101,22 +117,22 @@ function Home({ initialSpaces }) {
                   ? <IconButton onClick={handleClearSearch} size="small">
                     <CancelIcon fontSize="small"/>
                   </IconButton>
-                  : <IconButton onClick={fetchSpaces} size='small'>
+                  : <IconButton onClick={() => query.length > 0 && fetchSpaces()} size='small'>
                     <SearchIcon fontSize="small" />
                   </IconButton>,
                 }}
               />
+              {
+                !loading && spaces?.length > 0 && <Box p={2} pt={0} pb={0}>
+                  <Typography variant={'subtitle2'} sx={{ fontStyle: 'italic', textAlign: 'center', color: '#888' }}>
+                    {spaces?.length || 0} {spaces?.length === 1 ? 'espacio' : 'espacios'} encontrado{spaces?.length === 1 ? '' : 's'}
+                  </Typography>
+                </Box>
+              }
             </Stack>
           </Container>
         </Box>
         <Container>
-          {
-            !loading && spaces?.length > 0 && <Box p={2} pt={0}>
-              <Typography variant={'subtitle2'} sx={{ fontStyle: 'italic' }}>
-                {spaces?.length || 0} {spaces?.length === 1 ? 'espacio' : 'espacios'} encontrado{spaces?.length === 1 ? '' : 's'}
-              </Typography>
-            </Box>
-          }
           {
             loading && <LoadingSection />
           }
@@ -129,7 +145,10 @@ function Home({ initialSpaces }) {
                 {
                   spaces.map((item, index) => (
                     <Grid size={{ xs: 12, md: 4 }} key={index}>
-                      <SpaceCard item={item} />
+                      <SpaceCard
+                        item={item}
+                        onDelete={handleSpaceDeletion}
+                      />
                     </Grid>
                   ))
                 }

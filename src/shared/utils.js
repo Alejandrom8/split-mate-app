@@ -15,5 +15,5 @@ export const fmtMoney = (n, currency = "MXN") =>
   new Intl.NumberFormat("es-MX", { style: "currency", currency }).format(n);
 
 export const fmtDate = (d) =>
-  new Intl.DateTimeFormat("es-MX", { dateStyle: "medium", timeStyle: "short" })
+  new Intl.DateTimeFormat("es-MX", { dateStyle: "medium" })
     .format(typeof d === "string" ? new Date(d) : d);

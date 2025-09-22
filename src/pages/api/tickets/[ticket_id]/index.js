@@ -44,7 +44,7 @@ export default async function handler(req, res) {
     }
     return res.status(404).json({ error: 'Not found' });
   } catch (err) {
-    console.error('[api/tickets/[id]] Error:', err?.response?.data || err);
+    console.error('[api/tickets/[id]] Error:', JSON.stringify(err?.response?.data || err));
 
     // Si viene de axios, intenta propagar status razonable
     const status = err?.response?.status || 500;

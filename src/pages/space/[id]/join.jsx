@@ -41,7 +41,6 @@ const fmtMoney = (value, currency = 'MXN') => {
 
 function SpaceJoin(data) {
   const ev = data.initialEvent;
-
   const owner = ev?.members?.find((member) => member.role === 'owner');
 
   return (
@@ -51,8 +50,7 @@ function SpaceJoin(data) {
         display: 'grid',
         placeItems: 'center',
         px: 2,
-        background:
-          'linear-gradient(135deg, #FFF9C4 0%, #F5F5F5 100%)', // fondo suave
+        background: 'linear-gradient(135deg, #FFD6E5 0%, #D6E0FF 100%)', // gradient SplitMate pastel
       }}
     >
       <Stack spacing={3} alignItems="center" sx={{ width: '100%', maxWidth: 640 }}>
@@ -61,49 +59,85 @@ function SpaceJoin(data) {
           <AppTitle />
         </Stack>
 
-        <Card elevation={3} sx={{ width: '100%' }}>
+        {/* Card principal */}
+        <Card
+          elevation={4}
+          sx={{
+            width: '100%',
+            borderRadius: 2,
+            backgroundColor: 'rgba(255, 255, 255, 0.75)',
+            backdropFilter: 'blur(12px)',
+            boxShadow: '0 12px 32px rgba(0,0,0,0.08)',
+          }}
+        >
           <CardContent>
-            <Stack spacing={2} alignItems="center" textAlign="center">
+            <Stack spacing={2.5} alignItems="center" textAlign="center">
               {/* Nombre del espacio */}
-              <Typography variant="h5" fontWeight={700}>
+              <Typography
+                variant="h4"
+                fontWeight={800}
+                sx={{
+                  background: 'linear-gradient(90deg, #4C6FFF, #A78BFA)',
+                  backgroundClip: 'text',
+                  textFillColor: 'transparent',
+                }}
+              >
                 {ev.name}
               </Typography>
 
-              {/* Chips de metadata */}
-              <Stack direction="row" spacing={1} flexWrap="wrap" justifyContent="center">
-                <Chip label={`Código: ${ev.event_code}`} color="default" variant="outlined" />
-                <Chip label={`Fecha: ${fmtDate(ev.event_date)}`} variant="outlined" />
-                <Chip label={`Moneda: ${ev.currency}`} variant="outlined" />
-                {/*<Chip*/}
-                {/*  label={ev.status === 'active' ? 'Activo' : ev.status}*/}
-                {/*  color={ev.status === 'active' ? 'success' : 'default'}*/}
-                {/*  variant="filled"*/}
-                {/*  size="small"*/}
-                {/*/>*/}
+              {/* Chips */}
+              <Stack
+                direction="row"
+                spacing={1}
+                flexWrap="wrap"
+                justifyContent="center"
+              >
+                <Chip
+                  label={`Código: ${ev.event_code}`}
+                  variant="soft"
+                  color="primary"
+                  sx={{ fontWeight: 600 }}
+                />
+                <Chip
+                  label={`Fecha: ${fmtDate(ev.event_date)}`}
+                  variant="soft"
+                  color="secondary"
+                />
+                <Chip
+                  label={`Moneda: ${ev.currency}`}
+                  variant="soft"
+                  sx={{ bgcolor: 'rgba(255,229,0,0.15)', color: '#12172A' }}
+                />
               </Stack>
 
               {/* Owner */}
               <Stack direction="row" spacing={1.5} alignItems="center">
                 <Avatar
-                  sx={{ width: 40, height: 40 }}
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    bgcolor: '#4C6FFF',
+                    color: 'white',
+                    fontWeight: 700,
+                  }}
                   src={owner?.profile_image_url}
                 >
                   {owner?.username?.charAt(0)?.toUpperCase()}
                 </Avatar>
                 <Stack>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="caption" color="text.secondary">
                     Owner
                   </Typography>
-                  <Typography variant="body1" sx={{ wordBreak: 'break-all' }}>
+                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
                     {owner?.first_name} {owner?.last_name}
                   </Typography>
                 </Stack>
               </Stack>
 
-              <Divider sx={{ width: '100%', my: 1 }} />
+              <Divider flexItem sx={{ my: 1.5 }} />
 
               {/* Descripción */}
-              <Typography variant="body1" color="text.secondary">
+              <Typography variant="body1" color="text.secondary" sx={{ px: 2 }}>
                 {ev.description}
               </Typography>
 
@@ -112,7 +146,13 @@ function SpaceJoin(data) {
                 direction={{ xs: 'column', sm: 'row' }}
                 spacing={2}
                 justifyContent="center"
-                divider={<Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />}
+                divider={
+                  <Divider
+                    orientation="vertical"
+                    flexItem
+                    sx={{ display: { xs: 'none', sm: 'block' } }}
+                  />
+                }
                 sx={{ mt: 1 }}
               >
                 <Typography variant="body2">
@@ -132,7 +172,13 @@ function SpaceJoin(data) {
                 href={`/login?next=${encodeURIComponent(`/space/${ev.id}/join`)}`}
                 variant="contained"
                 size="large"
-                sx={{ mt: 1 }}
+                sx={{
+                  mt: 1,
+                  borderRadius: 3,
+                  px: 4,
+                  background: 'linear-gradient(135deg, #4C6FFF, #FF4D8D)',
+                  ':hover': { filter: 'brightness(1.05)' },
+                }}
               >
                 Entrar al espacio
               </Button>
@@ -140,7 +186,13 @@ function SpaceJoin(data) {
           </CardContent>
         </Card>
 
-        <Typography variant="caption" color="text.disabled" textAlign="center">
+        {/* Nota inferior */}
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          textAlign="center"
+          sx={{ maxWidth: 420 }}
+        >
           Estás viendo una vista previa pública del espacio. Inicia sesión o crea una cuenta para participar.
         </Typography>
       </Stack>
@@ -155,9 +207,7 @@ export const getServerSideProps = async (ctx) => {
     const eventResult = await v1Manager.get(`/v1/events/${id}`);
 
     if (!eventResult?.data?.success) {
-      return {
-        notFound: true
-      };
+      return { notFound: true };
     }
 
     event = eventResult.data.data;
@@ -168,16 +218,14 @@ export const getServerSideProps = async (ctx) => {
 
     if (at) {
       const joinResult = await v1Manager.post(
-        '/v1/events/join', 
-        {
-          event_code: event.event_code,
-        },
+        '/v1/events/join',
+        { event_code: event.event_code },
         {
           headers: {
             accept: 'application/json',
             'Content-Type': 'application/json',
             Authorization: `Bearer ${at}`,
-            }
+          },
         }
       );
 
@@ -185,33 +233,15 @@ export const getServerSideProps = async (ctx) => {
         return {
           redirect: {
             destination: `/space/${event.id}?mode=joined`,
-            permanent: false
-          }
-        }
-      }
-    }
-
-    return {
-      props: {
-        initialEvent: event,
-        joinData,
-      }
-    };
-  } catch (error) {
-    if (error.response) {
-      const errorData = error.response.data;
-      if (!errorData.success) {
-        return {
-          redirect: {
-            destination: `/space/${event.id}`,
-            permanent: false
-          }
+            permanent: false,
+          },
         };
       }
     }
-    return {
-      notFound: true
-    };
+
+    return { props: { initialEvent: event, joinData } };
+  } catch {
+    return { notFound: true };
   }
 };
 

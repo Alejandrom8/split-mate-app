@@ -50,11 +50,10 @@ export default function UploadTicketModal({
         }
       });
 
-      if (!res?.data.success) {
+      if (!res?.data?.success) {
         throw new Error(`Error al subir: ${res.status}`);
       }
 
-      console.log("UPLOAD RESULT", res?.data?.data);
       onCreated?.(res?.data?.data);
       enqueueSnackbar('Ticket subido con éxito', { variant: 'success' });
     } catch (err) {
