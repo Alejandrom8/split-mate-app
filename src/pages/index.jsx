@@ -159,7 +159,7 @@ function NavBar() {
             <ListItem disablePadding>
               <ListItemButton
                 component={NextLink}
-                href={"/login?mode=signup"}
+                href={"/login"}
                 sx={{
                   mt: 1,
                   borderRadius: 2,
@@ -542,7 +542,7 @@ function CTA() {
           sx={{
             textAlign: "center",
             p: { xs: 3, md: 5 },
-            borderRadius: 4,
+            borderRadius: 2,
             background: "rgba(255,255,255,0.86)",
             backdropFilter: "blur(8px)",
           }}

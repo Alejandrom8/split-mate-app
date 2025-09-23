@@ -138,8 +138,6 @@ function SpaceDetailPage({ authHeader, initialData, initialEventTickets, initial
           px: 1,
           pb: 0,
           backgroundColor: '#fff',
-          boxShadow: "0 2px 10px rgba(11,18,32,0.10)",
-          borderBottom: '2px solid rgba(0, 0, 0, 0.1)',
         }}>
           <Container>
             {/* Navegación */}
@@ -192,6 +190,7 @@ function SpaceDetailPage({ authHeader, initialData, initialEventTickets, initial
               scrollButtons
               allowScrollButtonsMobile
               variant={isSm ? 'fullWidth' : 'standard'}
+              sx={{ height: '60px' }}
             >
               <Tab icon={<ReceiptLong />} iconPosition="start" label="Tickets" />
               <Tab icon={<Info />} iconPosition="start" label="Balance" />

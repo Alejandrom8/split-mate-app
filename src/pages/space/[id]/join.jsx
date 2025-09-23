@@ -221,30 +221,42 @@ export const getServerSideProps = async (ctx) => {
     const at = cookies.at;
 
     if (at) {
-      const joinResult = await v1Manager.post(
-        '/v1/events/join',
-        { event_code: event.event_code },
-        {
-          headers: {
-            accept: 'application/json',
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${at}`,
-          },
-        }
-      );
+      try {
+        const joinResult = await v1Manager.post(
+          '/v1/events/join',
+          { event_code: event.event_code },
+          {
+            headers: {
+              accept: 'application/json',
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${at}`,
+            },
+          }
+        );
 
-      if (joinResult.data.success) {
-        return {
-          redirect: {
-            destination: `/space/${event.id}?mode=joined`,
-            permanent: false,
-          },
-        };
+        if (joinResult.data.success) {
+          return {
+            redirect: {
+              destination: `/space/${event.id}?mode=joined`,
+              permanent: false,
+            },
+          };
+        }
+      } catch (error) {
+        const data = error.toJSON();
+        if (data.status === 400) {
+          return {
+            redirect: {
+              destination: `/space/${event.id}`,
+              permanent: false,
+            },
+          }
+        }
       }
     }
 
     return { props: { initialEvent: event, joinData } };
-  } catch {
+  } catch (error) {
     return { notFound: true };
   }
 };
