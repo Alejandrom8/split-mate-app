@@ -42,6 +42,12 @@ function ProfilePage() {
   </>;
 }
 
-export const getServerSideProps = withAuth();
+export const getServerSideProps = withAuth((ctx) => {
+  try {
+    
+  } catch (error) {
+
+  }
+});
 
 export default ProfilePage;

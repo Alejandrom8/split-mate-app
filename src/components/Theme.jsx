@@ -6,9 +6,9 @@ const brand = {
   primary: "#4C6FFF",      // electric blue
   primaryDark: "#295BFF",
   secondary: "#12172A",    // navy profundo para contraste
-  accent: "#FFE500",       // amarillo neon (resalta CTAs/selection)
+  accent: "#ffe500ff",       // amarillo neon (resalta CTAs/selection)
   lilac: "#A78BFA",        // lavanda
-  pink: "#FF4D8D",         // rosa fuerte
+  pink: "#22C55E",         // rosa fuerte
   success: "#22C55E",
   info: "#60A5FA",
   error: "#FF5C5C",
@@ -143,7 +143,7 @@ const splitMateVolt = createTheme({
         {
           props: { variant: "gradient" },
           style: {
-            background: 'linear-gradient(135deg, #4C6FFF, #FF4D8D)',
+            background: 'linear-gradient(135deg, #4C6FFF, #22C55E)',
             ':hover': { filter: 'brightness(1.05)' },
             color: 'white',
           },
@@ -159,8 +159,8 @@ const splitMateVolt = createTheme({
           margin: 8,
           background: "rgba(255,255,255,0.55)",
           backdropFilter: "blur(10px)",
-          border: "1px solid rgba(255,255,255,0.7)",
-          boxShadow: "0 4px 10px rgba(11,18,32,0.10)",
+          borderBottom: "1px solid rgba(0,0,0,0.1)",
+          // boxShadow: "0 4px 10px rgba(11,18,32,0.10)",
         },
       },
     },
@@ -169,7 +169,7 @@ const splitMateVolt = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: baseShape.borderRadius + 6,
+          borderRadius: baseShape.borderRadius + 5,
           background: "rgba(255,255,255,1)",
           border: "1px solid rgba(255,255,255,0.7)",
           boxShadow: "0 10px 30px rgba(11,18,32,0.08), 0 1px 0 0 rgba(255,255,255,0.6) inset",
@@ -179,7 +179,12 @@ const splitMateVolt = createTheme({
 
     MuiPaper: {
       styleOverrides: {
-        root: { borderRadius: baseShape.borderRadius + 4, backgroundImage: "none" },
+        root: { 
+          borderRadius: baseShape.borderRadius, 
+          backgroundImage: "none",
+          paddingTop: 5,
+          paddingBottom: 5,
+        },
       },
     },
 
@@ -187,7 +192,9 @@ const splitMateVolt = createTheme({
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
-          borderRadius: baseShape.borderRadius + 2,
+          paddingTop: 0,
+          paddingBottom: 0,
+          borderRadius: baseShape.borderRadius,
           ":hover .MuiOutlinedInput-notchedOutline": {
             borderColor: brand.primary,
           },
@@ -200,7 +207,6 @@ const splitMateVolt = createTheme({
           backdropFilter: "blur(6px)",
         },
       },
-      defaultProps: { size: "medium" },
     },
 
     MuiChip: {

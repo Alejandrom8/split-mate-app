@@ -50,7 +50,7 @@ export default function ShareDialog({ open, onClose, shareUrl }) {
       maxWidth="sm"
       PaperProps={{
         sx: {
-          borderRadius: 3,
+          borderRadius: 1,
           overflow: "visible",
         },
       }}

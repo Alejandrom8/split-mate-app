@@ -1,0 +1,24 @@
+<svg width="640" height="200" viewBox="0 0 640 200" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title">
+  <title>Kuadramos - Símbolo y Wordmark</title>
+  <defs>
+    <linearGradient id="gradKB" x1="0" y1="0" x2="640" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0370FF"/>
+      <stop offset="1" stop-color="#FFE500"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Símbolo -->
+  <g transform="translate(16,16) scale(0.7)">
+    <path d="M40 88 V40 H152" stroke="url(#gradKB)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M216 168 V216 H104" stroke="url(#gradKB)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M88 64 V192" stroke="url(#gradKB)" stroke-width="16" stroke-linecap="round"/>
+    <path d="M88 128 L160 64" stroke="url(#gradKB)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M88 128 L160 192" stroke="url(#gradKB)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="210" y="120" font-family="Inter, Poppins, Montserrat, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif"
+        font-size="64" font-weight="700" letter-spacing="0.5" fill="url(#gradKB)">
+    Kuadramos
+  </text>
+</svg>

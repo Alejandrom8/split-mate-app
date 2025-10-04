@@ -110,6 +110,13 @@ export default function ProfileAvatarEditor({
         <Avatar
           src={preview || undefined}
           sx={{ width: size, height: size, fontSize: size / 2.8 }}
+          slotProps={{
+            img: {
+              referrerPolicy: "no-referrer", // útil si el CDN tiene hotlink protection
+              crossOrigin: "anonymous",
+              loading: "eager", // para avatares pequeños suele ser mejor
+            },
+          }}
         >
           {initials}
         </Avatar>

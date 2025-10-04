@@ -1,5 +1,5 @@
 // Avatares compactos
-import {Avatar, Stack} from "@mui/material";
+import {Avatar, Stack, Tooltip} from "@mui/material";
 
 
 const AvatarSizes = {
@@ -19,12 +19,13 @@ export default function AvatarGroupTight({ members, size = 'small' }) {
   return (
     <Stack direction="row" spacing={-0.5}>
       {members.slice(0, 5).map((m) => (
-        <Avatar
-          key={m.id}
-          src={m?.profile_image_url}
-          alt={m?.username}
-          sx={{ ...dimensions, border: "2px solid #fff" }}
-        />
+        <Tooltip title={m?.username} key={m.id}>
+          <Avatar
+            src={m?.profile_image_url}
+            alt={m?.username}
+            sx={{ ...dimensions, border: "2px solid #fff" }}
+          />
+        </Tooltip>
       ))}
       {members.length > 5 && (
         <Avatar

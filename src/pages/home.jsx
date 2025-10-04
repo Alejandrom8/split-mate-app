@@ -1,74 +1,50 @@
-import React, { useCallback, useEffect } from "react";
+import React from "react";
 import Head from "next/head";
 import {
-  Box,
   Container,
   Grid,
   Typography,
-  TextField, Stack,
-  CircularProgress,
-  IconButton, useTheme, useMediaQuery
+  Stack,
+  Divider
 } from "@mui/material";
 import SpaceCard from "@/components/Spaces/SpaceCard";
-import SearchIcon from '@mui/icons-material/Search';
 import { withAuth } from '@/shared/withAuth';
 import { useState } from "react";
 import v1Manager from "@/shared/v1Manager";
 import CreateSpeedDial from "@/components/App/CreateSpeedDial";
-import {useRouter} from "next/router";
-import useDelayedQuery from "@/hooks/useDelayedQuery";
 import { useSnackbar } from "notistack";
 import clientManager from "@/shared/clientManager";
-import CancelIcon from '@mui/icons-material/Cancel';
 import EmptySection from "@/components/App/EmptySection";
 import LoadingSection from "@/components/App/LoadingSection";
+import PeopleIcon from '@mui/icons-material/People';
+import PersonIcon from '@mui/icons-material/Person';
 
 function Home({ initialSpaces }) {
   const [spaces, setSpaces] = useState(initialSpaces?.events);
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
-  const [query, setQuery] = useState('');
 
-  const fetchSpaces = useCallback(async (q = '') => {
+  const fetchSpaces = async () => {
     setLoading(true);
     try {
-      const _query = typeof q === 'string' ? q : query;
-      const result = await clientManager.get(`/space/my-spaces${_query && _query.trim() !== '' ? `?search=${_query}` : ''}`);
+      const result = await clientManager.get(`/space/my-spaces`);
       setSpaces(result.data?.events);
     } catch (error) {
       console.log(error);
-      enqueueSnackbar('Hubo un error al traer tus espacios', { variant: 'error' });
+      enqueueSnackbar(`Hubo un error al traer tus espacios: ${error.message}`, { variant: 'error' });
     } finally {
       setLoading(false);
     }
-  }, [query]);
+  };
 
   const handleCreated = (_space) => {
-    router.push(`/space/${_space.id}`);
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      fetchSpaces()
-        .catch(error => {
-          console.log('FETCH SPACES ERROR', error);
-        })
-    }
-  };
-
-  const handleClearSearch = () => {
-    setQuery('');
-    fetchSpaces('')
-      .catch(error => {
-        console.log('FETCH SPACES ERROR', error);
-      })
+    //router.push(`/space/${_space.id}`);
+    fetchSpaces();
   };
 
   const handleSpaceDeletion = (item) => {
     const prevSpaces = spaces.slice();
     const deletedItemIndex = spaces.find(s => s.id === item.id);
-    console.log(deletedItemIndex);
     if (deletedItemIndex === -1) return;
     prevSpaces.splice(deletedItemIndex, 1);
     setSpaces(prevSpaces);
@@ -77,12 +53,10 @@ function Home({ initialSpaces }) {
   return (
     <>
       <Head>
-        <title>Split Mate | Tus espacios</title>
+        <title>Divi | Tus espacios</title>
         <meta name="description" content="Split Mate - separa gastos con tus amigos" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
-
-        {/* Open Graph básico */}
         <meta property="og:title" content={`Split Mate`} />
         <meta property="og:description" content="Split Mate - separa gastos con tus amigos" />
         <meta property="og:image" content="https://split-mate-app.vercel.app/favicon.ico" />
@@ -90,73 +64,64 @@ function Home({ initialSpaces }) {
         <meta property="og:type" content="website" />
       </Head>
 
+      {/** Speed Dial */}
       <CreateSpeedDial onSpaceCreated={handleCreated} />
 
-      <Box sx={{ minHeight: 600, pb: 10 }}>
-        <Box sx={{ my: 3, p: 3 }}>
-          <Container>
-            <Stack
-              direction={'column'}
-              spacing={2}
-              alignItems={'center'}
-              justifyContent="space-between"
-            >
-              <Typography variant={'h4'}>
-                Tus espacios
-              </Typography>
-              <TextField
-                size={'small'}
-                sx={{ width: { xs: '80vw', sm: '60vw', md: '40vw' }, borderRadius: 10 }}
-                variant={'outlined'}
-                value={query}
-                onKeyDown={handleKeyDown}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={'Buscar por nombre de espacio o persona'}
-                InputProps={{
-                  endAdornment: query?.length > 0 
-                  ? <IconButton onClick={handleClearSearch} size="small">
-                    <CancelIcon fontSize="small"/>
-                  </IconButton>
-                  : <IconButton onClick={() => query.length > 0 && fetchSpaces()} size='small'>
-                    <SearchIcon fontSize="small" />
-                  </IconButton>,
-                }}
-              />
-              {
-                !loading && spaces?.length > 0 && <Box p={2} pt={0} pb={0}>
-                  <Typography variant={'subtitle2'} sx={{ fontStyle: 'italic', textAlign: 'center', color: '#888' }}>
-                    {spaces?.length || 0} {spaces?.length === 1 ? 'espacio' : 'espacios'} encontrado{spaces?.length === 1 ? '' : 's'}
+      {/* Main */}
+      <Container sx={{ mt: 5, mb: 10, minHeight: '91vh' }}>
+        {
+          loading && <LoadingSection />
+        }
+        {
+          !spaces?.length && !loading && <EmptySection />
+        }
+        {
+          spaces?.length > 0 && !loading && <>
+            <Stack direction={'column'} spacing={2}>
+              <Stack direction={'column'} py={1} spacing={1}>
+                <Stack direction={'row'} spacing={1} alignItems={'center'}>
+                  <PersonIcon sx={{ color: '#bbb' }} fontSize="small" />
+                  <Typography variant="subtitle1" color='#bbb' sx={{ fontWeight: 0 }}>
+                    Tus espacios
                   </Typography>
-                </Box>
-              }
+                </Stack>
+                <Grid container spacing={{ xs: 2, md: 4 }} sx={{ pt: 1 }}>
+                  {
+                    spaces.filter(s => s?.member_role === 'owner').map((item, index) => (
+                      <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
+                        <SpaceCard
+                          item={item}
+                          onDelete={handleSpaceDeletion}
+                        />
+                      </Grid>
+                    ))
+                  }
+                </Grid>
+              </Stack>
+              <Stack direction={'column'} py={1} spacing={1}>
+                <Stack direction={'row'} spacing={1} alignItems={'center'}>
+                  <PeopleIcon sx={{ color: '#bbb' }} fontSize="small" />
+                  <Typography variant="subtitle1" color='#bbb' sx={{ fontWeight: 0 }}>
+                    Otros espacios
+                  </Typography>
+                </Stack>
+                <Grid container spacing={{ xs: 2, md: 4 }} sx={{ pt: 1 }}>
+                  {
+                    spaces.filter(s => s?.member_role !== 'owner').map((item, index) => (
+                      <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
+                        <SpaceCard
+                          item={item}
+                          onDelete={handleSpaceDeletion}
+                        />
+                      </Grid>
+                    ))
+                  }
+                </Grid>
+              </Stack>
             </Stack>
-          </Container>
-        </Box>
-        <Container>
-          {
-            loading && <LoadingSection />
-          }
-          {
-            !spaces?.length && !loading && <EmptySection />
-          }
-          {
-            spaces?.length > 0 && !loading && (
-              <Grid container spacing={{ xs: 2, md: 4 }}>
-                {
-                  spaces.map((item, index) => (
-                    <Grid size={{ xs: 12, md: 4 }} key={index}>
-                      <SpaceCard
-                        item={item}
-                        onDelete={handleSpaceDeletion}
-                      />
-                    </Grid>
-                  ))
-                }
-              </Grid>
-            )
-          }
-        </Container>
-      </Box>
+          </>
+        }
+      </Container>
     </>
   );
 }

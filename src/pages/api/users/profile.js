@@ -12,14 +12,8 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'PUT') {
-    const { first_name, last_name, email } = req.body;
-
     try {
-      const upstream = await v1Manager.put('/v1/users/profile', {
-          first_name,
-          last_name,
-          email,
-        }, authHeader);
+      const upstream = await v1Manager.put('/v1/users/profile', req.body, authHeader);
         
         if (!upstream?.data?.success) {
           return res.status(502).json({

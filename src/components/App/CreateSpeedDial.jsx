@@ -25,8 +25,8 @@ export default function CreateSpeedDial({
     <Box
       sx={{
         position: "fixed",
-        right: 24,
-        bottom: 24,
+        right: 38,
+        bottom: 38,
         zIndex: (theme) => theme.zIndex.tooltip + 1,
       }}
     >
@@ -37,6 +37,9 @@ export default function CreateSpeedDial({
           <SpeedDialIcon
             icon={<AddIcon />}
             openIcon={<AddIcon />}
+            sx={{
+              boxShadow: 'rgba(0, 0, 0, 0.02) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 8px 24px 0px',
+            }}
           />
         }
       >

@@ -1,21 +1,22 @@
 import React from 'react';
-import {Box, Typography} from "@mui/material";
+import {Box, Stack, Typography} from "@mui/material";
+import NextLink from 'next/link';
 
-export default function AppTitle() {
-  return <>
-    <Box
-      aria-label="Split Mate"
-      sx={{
-        width: 28,
-        height: 28,
-        borderRadius: "8px",
-        mr: 1,
-      }}
-    >
-      <img src={'/logo.png'} width={'28px'} height={'28px'} />
-    </Box>
-    <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 800 }}>
-      Split Mate
-    </Typography>
-  </>
+export default function AppTitle({ href = "" }) {
+
+  const logo = (
+    <Stack direction={'row'} spacing={1} alignItems='center'>
+      <img src={'/logo.svg'} width={'35px'} alt='Kuadramos logo'/>
+      <Typography
+        color='primary'
+        sx={{ flexGrow: 1, fontWeight: 800, p: 0, m: 0, fontSize: '1.2rem', lineHeight: 0, letterSpacing: 0.5 }} 
+        gutterBottom={false}
+      >
+        Divi
+      </Typography>
+    </Stack>
+  );
+
+  if (href) return <NextLink href={href} style={{ textDecoration: 'none' }}>{logo}</NextLink>;
+  return logo;
 }

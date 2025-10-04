@@ -7,7 +7,7 @@ import {Box, Button} from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import {useRouter} from "next/router";
 
-function TicketDetailPage({ isOwner, spaceId, initialData, initialAssignments }) {
+function TicketDetailPage({ isOwner, spaceId, initialData, initialAssignments, initialTicketBalance }) {
   const handleEdit = () => alert("Editar ticket");
   const handleShare = () => alert("Compartir ticket");
   const handleSplit = () => alert("Ir a dividir gastos");
@@ -20,23 +20,13 @@ function TicketDetailPage({ isOwner, spaceId, initialData, initialAssignments })
   };
 
   return <>
-    <Box sx={{ py: 1, width: '100%', border: '1px solid rgba(0, 0, 0, 0.1)', position: 'fixed', top: 0, left: 0, backgroundColor: 'white', zIndex: 1000 }}>
-      <Button
-        onClick={handleCancel}
-        startIcon={<ArrowBackIcon />}
-        variant="text"
-        sx={{ color: "text.primary" }}
-      >
-        Regresar
-      </Button>
-    </Box>
-    <Box sx={{ mb: 8 }} />
     <TicketDetail
       selectable={isSelectable}
       editable={isEditable}
       spaceId={spaceId}
       ticket={initialData}
       assignments={initialAssignments}
+      balance={initialTicketBalance}
       onEdit={handleEdit}
       onShare={handleShare}
       onSplit={handleSplit}
@@ -46,15 +36,15 @@ function TicketDetailPage({ isOwner, spaceId, initialData, initialAssignments })
 
 export const getServerSideProps = withAuth(async ({ authHeader, ...ctx }) => {
   try {
-    const { id, ticket_id } = ctx.params;
+    const { id: spaceId, ticketId } = ctx.params;
 
-    if (!id || !ticket_id) {
+    if (!spaceId || !ticketId) {
       return {
         notFound: true,
       }
     }
 
-    const res = await v1Manager.get(`/v1/tickets/${ticket_id}`, {}, { headers: authHeader.headers });
+    const res = await v1Manager.get(`/v1/tickets/${ticketId}`, {}, { headers: authHeader.headers });
     if (!res?.data?.success) {
       throw new Error(`Error fetching ticket: ${res.status}`);
     }
@@ -63,15 +53,19 @@ export const getServerSideProps = withAuth(async ({ authHeader, ...ctx }) => {
     const ticket = res.data.data;
     const isOwner = ticket.owner.user_id === currentUser.id;
 
-    const assignmentsRes = await v1Manager.get(`/v1/tickets/${ticket_id}/assignments-summary`, {}, { headers: authHeader.headers });
+    const assignmentsRes = await v1Manager.get(`/v1/tickets/${ticketId}/assignments-summary`, {}, { headers: authHeader.headers });
     const assignments = assignmentsRes.data.data;
+
+    const ticketBalanceRes = await v1Manager.get(`/v1/balance/${spaceId}/ticket/${ticketId}`, {}, { headers: authHeader.headers });
+    const ticketBalance = ticketBalanceRes.data.data;
 
     return {
       props: {
         isOwner,
-        spaceId: id,
+        spaceId,
         initialData: ticket,
-        initialAssignments: assignments
+        initialAssignments: assignments,
+        initialTicketBalance: ticketBalance,
       }
     };
   } catch (error) {

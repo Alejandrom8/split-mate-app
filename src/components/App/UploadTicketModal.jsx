@@ -17,6 +17,7 @@ import TicketDropzone from "@/components/Tickets/TicketDropzone";
 import SpaceSelector from "@/components/Form/SpaceSelector";
 import FileCard from "@/components/Form/FIleCard";
 import v1Manager from "@/shared/v1Manager";
+import UserSelector from '../Form/UserSelector';
 
 export default function UploadTicketModal({
    _authHeader,
@@ -30,6 +31,7 @@ export default function UploadTicketModal({
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = React.useState(false);
   const { enqueueSnackbar } = useSnackbar();
+  const [selectedUsers, setSelectedUsers] = useState([]);
 
   const reset = () => {
     setLoading(false);
@@ -87,6 +89,12 @@ export default function UploadTicketModal({
                   />
                 )
               }
+              <UserSelector 
+                value={selectedUsers}
+                onChange={setSelectedUsers}
+                label="Participantes"
+                placeholder="Selecciona los participantes de este ticket"
+              />
               <TicketDropzone
                 onFiles={(accepted, rejected) => {
                   setFiles(accepted);

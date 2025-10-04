@@ -62,7 +62,12 @@ export default function CreateSpaceModal({
   return (
     <Dialog open={open} onClose={handleCancel} fullWidth maxWidth="sm">
       <form onSubmit={handleSubmit}>
-        <Card elevation={1}>
+        <Card
+          sx={{
+            backgroundColor: "rgba(255, 255, 255, 0.4)",
+            backdropFilter: "blur(8px)",
+          }}
+        >
           <CardHeader title={title} />
           <CardContent>
             <Stack spacing={2}>
@@ -88,7 +93,7 @@ export default function CreateSpaceModal({
                 placeholder="Ingresa la descripción del espacio"
                 disabled={loading}
                 multiline
-                minRows={2}
+                minRows={3}
               />
             </Stack>
           </CardContent>

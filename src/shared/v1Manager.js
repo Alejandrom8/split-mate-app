@@ -7,7 +7,7 @@ class ApiManager {
   }
 
   async get(url, params = {}, config = {}) {
-    console.log(`[ApiManager][GET] URL: ${this.baseURL}${url} | Params:`, params, config);
+    console.log(`[ApiManager][GET] URL: ${this.baseURL}${url} | Params:`, params);
     try {
       const response = await this.instance.get(url, { params, headers: config?.headers });
       return response;
@@ -17,7 +17,7 @@ class ApiManager {
   }
 
   async post(url, data = {}, config = {}) {
-    console.log(`[ApiManager][POST] URL: ${this.baseURL}${url} | Data:`, data, config);
+    console.log(`[ApiManager][POST] URL: ${this.baseURL}${url} | Data:`, data);
     try {
       const response = await this.instance.post(url, data, config);
       return response;
@@ -28,7 +28,7 @@ class ApiManager {
   }
 
   async put(url, data = {}, config = {}) {
-    console.log(`[ApiManager][PUT] URL: ${this.baseURL}${url} | Data:`, data, config);
+    console.log(`[ApiManager][PUT] URL: ${this.baseURL}${url} | Data:`, data);
     try {
       const response = await this.instance.put(url, data, config);
       return response;
@@ -38,7 +38,7 @@ class ApiManager {
   }
 
   async delete(url, config = {}) {
-    console.log(`[ApiManager][DELETE] URL: ${this.baseURL}${url} | Config:`, config);
+    console.log(`[ApiManager][DELETE] URL: ${this.baseURL}${url}`);
     try {
       const response = await this.instance.delete(url, config);
       return response;

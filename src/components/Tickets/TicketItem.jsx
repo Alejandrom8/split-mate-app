@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from "react";
+import {useEffect, useState} from "react";
 import {
   Card,
   CardContent,
@@ -15,15 +15,12 @@ import {
   CircularProgress,
   TextField,
   Checkbox,
-  AvatarGroup,
-  Avatar,
   useTheme, useMediaQuery,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import { fmtMoney } from "@/shared/utils";
-import NumericInput from "@/components/Form/NumericInput";
 import MiniNumericInput from "@/components/Form/NumericInput";
 import AvatarGroupTight from "@/components/App/AvatarGroupTight";
 
@@ -126,18 +123,21 @@ export default function TicketItem({ item, selectable, selected, editable, initi
 
   return <>
     <Card
+      elevation={0}
       variant="outlined"
       sx={{
-        borderRadius: 2,
+        borderRadius: 1,
         px: 2,
         py: 1.5,
         mb: 2,
         cursor: "pointer",
+        border: '1px solid rgba(0,0,0,0.1)',
         borderColor: "divider",
         transition: "all .2s ease",
+        boxShadow: 0,
         "&:hover": {
           borderColor: "primary.light",
-          boxShadow: 3,
+          boxShadow: 1,
         },
       }}
     >

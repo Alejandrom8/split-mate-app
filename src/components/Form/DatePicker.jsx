@@ -22,10 +22,10 @@ export default function DatePicker({
                                                 label = "Fecha",
                                                 value,
                                                 onChange,
-                                                minDate,
-                                                maxDate,
-                                                disablePast,
-                                                disableFuture,
+                                                minDate = null,
+                                                maxDate = null,
+                                                disablePast = false,
+                                                disableFuture = false,
                                               }) {
   const [open, setOpen] = React.useState(false);
   const [draft, setDraft] = React.useState(value ?? null);
