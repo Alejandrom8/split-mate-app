@@ -5,7 +5,9 @@ import {
   Grid,
   Typography,
   Stack,
-  Divider
+  Divider,
+  useTheme,
+  useMediaQuery
 } from "@mui/material";
 import SpaceCard from "@/components/Spaces/SpaceCard";
 import { withAuth } from '@/shared/withAuth';
@@ -18,8 +20,11 @@ import EmptySection from "@/components/App/EmptySection";
 import LoadingSection from "@/components/App/LoadingSection";
 import PeopleIcon from '@mui/icons-material/People';
 import PersonIcon from '@mui/icons-material/Person';
+import AppLayout from "@/components/App/AppLayout";
 
-function Home({ initialSpaces }) {
+function Home({ initialSpaces, authHeader }) {
+  const theme = useTheme();
+  const isMd = useMediaQuery(theme.breakpoints.up('md'));
   const [spaces, setSpaces] = useState(initialSpaces?.events);
   const [loading, setLoading] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
@@ -64,64 +69,63 @@ function Home({ initialSpaces }) {
         <meta property="og:type" content="website" />
       </Head>
 
-      {/** Speed Dial */}
-      <CreateSpeedDial onSpaceCreated={handleCreated} />
-
-      {/* Main */}
-      <Container sx={{ mt: 5, mb: 10, minHeight: '91vh' }}>
-        {
-          loading && <LoadingSection />
-        }
-        {
-          !spaces?.length && !loading && <EmptySection />
-        }
-        {
-          spaces?.length > 0 && !loading && <>
-            <Stack direction={'column'} spacing={2}>
-              <Stack direction={'column'} py={1} spacing={1}>
-                <Stack direction={'row'} spacing={1} alignItems={'center'}>
-                  <PersonIcon sx={{ color: '#bbb' }} fontSize="small" />
-                  <Typography variant="subtitle1" color='#bbb' sx={{ fontWeight: 0 }}>
-                    Tus espacios
-                  </Typography>
+      <AppLayout authHeader={authHeader} onSpaceCreated={handleCreated}>
+        {/* Main */}
+        <Container sx={{ mt: { xs: 2, md: 5 }, mb: 10, minHeight: '91vh' }}>
+          {
+            loading && <LoadingSection />
+          }
+          {
+            !spaces?.length && !loading && <EmptySection />
+          }
+          {
+            spaces?.length > 0 && !loading && <>
+              <Stack direction={'column'} spacing={2}>
+                <Stack direction={'column'} py={1} spacing={1}>
+                  <Stack direction={'row'} spacing={1} alignItems={'center'}>
+                    <PersonIcon sx={{ color: '#bbb' }} fontSize="small" />
+                    <Typography variant="subtitle1" color='#bbb' sx={{ fontWeight: 0 }}>
+                      Tus espacios
+                    </Typography>
+                  </Stack>
+                  <Grid container spacing={{ xs: 2, md: 4 }} sx={{ pt: 1 }}>
+                    {
+                      spaces.filter(s => s?.member_role === 'owner').map((item, index) => (
+                        <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
+                          <SpaceCard
+                            item={item}
+                            onDelete={handleSpaceDeletion}
+                          />
+                        </Grid>
+                      ))
+                    }
+                  </Grid>
                 </Stack>
-                <Grid container spacing={{ xs: 2, md: 4 }} sx={{ pt: 1 }}>
-                  {
-                    spaces.filter(s => s?.member_role === 'owner').map((item, index) => (
-                      <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
-                        <SpaceCard
-                          item={item}
-                          onDelete={handleSpaceDeletion}
-                        />
-                      </Grid>
-                    ))
-                  }
-                </Grid>
-              </Stack>
-              <Stack direction={'column'} py={1} spacing={1}>
-                <Stack direction={'row'} spacing={1} alignItems={'center'}>
-                  <PeopleIcon sx={{ color: '#bbb' }} fontSize="small" />
-                  <Typography variant="subtitle1" color='#bbb' sx={{ fontWeight: 0 }}>
-                    Otros espacios
-                  </Typography>
+                <Stack direction={'column'} py={1} spacing={1}>
+                  <Stack direction={'row'} spacing={1} alignItems={'center'}>
+                    <PeopleIcon sx={{ color: '#bbb' }} fontSize="small" />
+                    <Typography variant="subtitle1" color='#bbb' sx={{ fontWeight: 0 }}>
+                      Otros espacios
+                    </Typography>
+                  </Stack>
+                  <Grid container spacing={{ xs: 2, md: 4 }} sx={{ pt: 1 }}>
+                    {
+                      spaces.filter(s => s?.member_role !== 'owner').map((item, index) => (
+                        <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
+                          <SpaceCard
+                            item={item}
+                            onDelete={handleSpaceDeletion}
+                          />
+                        </Grid>
+                      ))
+                    }
+                  </Grid>
                 </Stack>
-                <Grid container spacing={{ xs: 2, md: 4 }} sx={{ pt: 1 }}>
-                  {
-                    spaces.filter(s => s?.member_role !== 'owner').map((item, index) => (
-                      <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
-                        <SpaceCard
-                          item={item}
-                          onDelete={handleSpaceDeletion}
-                        />
-                      </Grid>
-                    ))
-                  }
-                </Grid>
               </Stack>
-            </Stack>
-          </>
-        }
-      </Container>
+            </>
+          }
+        </Container>
+      </AppLayout>
     </>
   );
 }
@@ -132,6 +136,7 @@ export const getServerSideProps = withAuth(async ({ authHeader }) => {
     return {
       props: {
         initialSpaces: result.data?.data,
+        authHeader,
       }
     };
   } catch (error) {

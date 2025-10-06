@@ -68,7 +68,7 @@ function ProfilePage({ authHeader }) {
       <meta property="og:url" content="https://split-mate-app.vercel.app/" />
       <meta property="og:type" content="website" />
     </Head>
-    <Container sx={{ py: 3, height: '100vh' }}>
+    <Container sx={{ py: 10, minHeight: '100vh' }}>
       <Box
         px={2}
         sx={{ minHeight: '75vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}

@@ -271,7 +271,7 @@ export default function TicketDetail({
         {editable && 'Ajusta tu ticket'}
       </Typography>
     </Box> */}
-    <Grid container spacing={{ xs: 3, md: 5 }} sx={{ mb: '10vh' }}>
+    <Grid container spacing={{ xs: 3, md: 7 }} sx={{ mb: '10vh' }}>
       {/** TARJETA DE ITEMS  */}
       <Grid size={{ xs: 12, md: 8 }}>
         <Card
@@ -412,7 +412,7 @@ export default function TicketDetail({
       <Grid size={{ xs: 12, md: 4 }}>
         {
           isMd 
-          ? <StickyBox offsetTop={100} offsetBottom={80}>
+          ? <StickyBox offsetTop={100} offsetBottom={30}>
             {ticketActions}
           </StickyBox>
           : ticketActions

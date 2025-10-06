@@ -52,51 +52,49 @@ export default function ShareDialog({ open, onClose, shareUrl }) {
         sx: {
           borderRadius: 1,
           overflow: "visible",
+          px: 3,
+          py: 2,
         },
       }}
     >
-      <Card elevation={3} sx={{ m: 0.5, borderRadius: 3 }}>
-        <CardContent>
-          <DialogTitle sx={{ px: 0, pt: 0 }}>
-            <Typography variant="h6" fontWeight={700}>
-              Compartir
-            </Typography>
-          </DialogTitle>
-          <DialogContent sx={{ px: 0 }}>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Comparte este espacio con tus amigos y empiecen a subir sus tickets!
-            </Typography>
+      <DialogTitle sx={{ px: 0, pt: 0 }}>
+        <Typography variant="h6" fontWeight={700}>
+          Compartir
+        </Typography>
+      </DialogTitle>
+      <DialogContent sx={{ px: 0 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Comparte este espacio con tus amigos y empiecen a subir sus tickets!
+        </Typography>
 
-            <TextField
-              fullWidth
-              value={shareUrl}
-              InputProps={{
-                readOnly: true,
-                sx: {
-                  pr: 0.5,
-                  height: 48,
-                  maxWidth: '600px',
-                  "& .MuiInputBase-input": { fontFamily: "monospace" },
-                },
-                endAdornment: (
-                  <Tooltip title={copied ? "Copiado!" : "Copiar enlace"} placement="top">
-                    <IconButton onClick={handleCopy} aria-label="Copiar enlace" edge="end">
-                      <ContentCopyIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                ),
-              }}
-            />
-          </DialogContent>
+        <TextField
+          fullWidth
+          value={shareUrl}
+          InputProps={{
+            readOnly: true,
+            sx: {
+              pr: 0.5,
+              height: 48,
+              maxWidth: '600px',
+              "& .MuiInputBase-input": { fontFamily: "monospace" },
+            },
+            endAdornment: (
+              <Tooltip title={copied ? "Copiado!" : "Copiar enlace"} placement="top">
+                <IconButton onClick={handleCopy} aria-label="Copiar enlace" edge="end">
+                  <ContentCopyIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            ),
+          }}
+        />
+      </DialogContent>
 
-          <DialogActions sx={{ px: 0, pb: 0 }}>
-            <Box sx={{ flex: 1 }} />
-            <Button onClick={onClose} variant="contained" disableElevation>
-              Listo
-            </Button>
-          </DialogActions>
-        </CardContent>
-      </Card>
+      <DialogActions sx={{ px: 0, pb: 0 }}>
+        <Box sx={{ flex: 1 }} />
+        <Button onClick={onClose} variant="contained" disableElevation>
+          Listo
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 }

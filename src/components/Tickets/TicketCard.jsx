@@ -77,8 +77,23 @@ export default function TicketRow({ ticket, onSelect, onDeleteCompleted, tipPerc
           "&:hover": { boxShadow: "0 18px 48px rgba(0,0,0,0.15)" }
         })}
       >
-        <CardContent sx={{ px: { xs: 2.5, sm: 3, md: 4 }, py: { xs: 2.5, sm: 2 } }}>
+        <CardContent sx={{ px: { xs: 2, sm: 3, md: 4 }, py: { xs: 2.5, sm: 2 }, position: 'relative' }}>
           {/* Encabezado */}
+          {/* Menú (arriba a la derecha como acción secundaria) */}
+          <Box sx={{ display: 'flex', justifyContent: 'right', position: 'absolute', top: 2, right: 5  }}>
+            {isOwner && (
+              <IconButton
+                size="small"
+                sx={{ backgroundColor: 'rgba(0, 0, 0, 0.02)' }}
+                onClick={openMenu}
+                aria-label="Más opciones"
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                <MoreVertIcon fontSize="small"/>
+              </IconButton>
+            )}
+          </Box>
+
           <Stack alignItems="center" spacing={0.5} sx={{ textAlign: "center" }}>
             <Typography 
               variant="subtitle1" 
@@ -98,7 +113,7 @@ export default function TicketRow({ ticket, onSelect, onDeleteCompleted, tipPerc
 
           {/* Tabla de valores */}
           <Box sx={{ mt: 2 }}>
-            <Grid container spacing={0.5} alignItems="center">
+            <Grid container spacing={{ xs: 0, md: 0.5 }} alignItems="center">
               <Grid size={5}>
                 <Typography color="text.secondary" sx={{ letterSpacing: 1, fontSize: '12px' }}>ESTADO</Typography>
               </Grid>
@@ -128,7 +143,7 @@ export default function TicketRow({ ticket, onSelect, onDeleteCompleted, tipPerc
                 <Typography sx={{ letterSpacing: 1, fontSize: '12px' }}>TOTAL</Typography>
               </Grid>
               <Grid size={7} textAlign="right">
-                <Typography fontWeight={900} sx={{ fontVariantNumeric: "tabular-nums" }}>
+                <Typography fontWeight={900} sx={{ fontVariantNumeric: "tabular-nums", fontSize: '0.9rem' }}>
                   {fmtMoney(total)}
                 </Typography>
               </Grid>
@@ -161,19 +176,6 @@ export default function TicketRow({ ticket, onSelect, onDeleteCompleted, tipPerc
           >
             {series}
           </Typography>
-
-          {/* Menú (arriba a la derecha como acción secundaria) */}
-          {isOwner && (
-            <IconButton
-              size="small"
-              onClick={openMenu}
-              sx={{ position: "absolute", top: 8, right: 8 }}
-              aria-label="Más opciones"
-              onMouseDown={(e) => e.stopPropagation()}
-            >
-              <MoreVertIcon />
-            </IconButton>
-          )}
         </CardContent>
       </Card>
 
@@ -185,6 +187,9 @@ export default function TicketRow({ ticket, onSelect, onDeleteCompleted, tipPerc
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
         onClick={(e) => e.stopPropagation()}
+        PaperProps={{
+          style: { padding: 0, margin: 0 }
+        }}
       >
         <MenuItem onClick={handleDeleteClick}>
           <ListItemIcon><DeleteOutlineIcon fontSize="small" /></ListItemIcon>

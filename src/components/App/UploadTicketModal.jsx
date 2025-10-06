@@ -76,7 +76,7 @@ export default function UploadTicketModal({
     <Dialog open={open} onClose={handleCancel} fullWidth maxWidth="sm">
       <form onSubmit={handleSubmit}>
         <Card elevation={1}>
-          <CardHeader title={title} />
+          <CardHeader title={title} sx={{ paddingBottom: 1 }}/>
           <CardContent>
             <Stack spacing={2}>
               {
@@ -95,15 +95,19 @@ export default function UploadTicketModal({
                 label="Participantes"
                 placeholder="Selecciona los participantes de este ticket"
               />
-              <TicketDropzone
-                onFiles={(accepted, rejected) => {
-                  setFiles(accepted);
-                  console.log('Aceptados:', accepted);
-                  console.log('Rechazados:', rejected);
-                }}
-                maxFiles={1}
-                accept={{ 'image/*': [] }}
-              />
+              {
+                files.length === 0 && (
+                  <TicketDropzone
+                    onFiles={(accepted, rejected) => {
+                      setFiles(accepted);
+                      console.log('Aceptados:', accepted);
+                      console.log('Rechazados:', rejected);
+                    }}
+                    maxFiles={1}
+                    accept={{ 'image/*': [] }}
+                  />
+                )
+              }
               <Box>
                 {files.map((f) => (
                   <FileCard

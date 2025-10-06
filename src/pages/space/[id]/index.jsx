@@ -49,50 +49,7 @@ import { useSnackbar } from "notistack";
 import clientManager from "@/shared/clientManager";
 import LoadingSection from "@/components/App/LoadingSection";
 import AvatarGroupTight from "@/components/App/AvatarGroupTight";
-
-// ---------- Helpers ----------
-// ---------- Mock data ----------
-const mockMembers = [
-  { id: "u1", name: "Alex", avatar: "https://i.pravatar.cc/64?img=68" },
-  { id: "u2", name: "Maggy", avatar: "https://i.pravatar.cc/64?img=5" },
-  { id: "u3", name: "Roni", avatar: "https://i.pravatar.cc/64?img=12" },
-  { id: "u4", name: "Lis", avatar: "https://i.pravatar.cc/64?img=23" },
-];
-
-const mockBalances = [
-  { userId: "u1", name: "Alex", net: 250.0 }, // a favor
-  { userId: "u2", name: "Maggy", net: -120.0 }, // debe
-  { userId: "u3", name: "Roni", net: -90.0 }, // debe
-  { userId: "u4", name: "Lis", net: -40.0 }, // debe
-];
-
-// ---------- Subcomponentes simples ----------
-function SummaryStat({ icon, label, value, hint, color = "primary.main" }) {
-  return (
-    <Card variant="outlined">
-      <CardContent>
-        <Stack direction="row" spacing={1.5} alignItems="center">
-          <Box sx={{ p: 1, borderRadius: 2, bgcolor: `${color}20` }}>
-            {icon}
-          </Box>
-          <Box>
-            <Typography variant="overline" color="text.secondary">
-              {label}
-            </Typography>
-            <Typography variant="h6" fontWeight={800}>
-              {value}
-            </Typography>
-            {hint && (
-              <Typography variant="caption" color="text.secondary">
-                {hint}
-              </Typography>
-            )}
-          </Box>
-        </Stack>
-      </CardContent>
-    </Card>
-  );
-}
+import AppLayout from "@/components/App/AppLayout";
 
 // ---------- Página Detalle de espacio ----------
 function SpaceDetailPage({
@@ -105,14 +62,12 @@ function SpaceDetailPage({
   const [tickets, setTickets] = React.useState(initialEventTickets);
   const [shareOpen, setShareOpen] = useState(false);
   const router = useRouter();
-  const { onCloseUploadTicket } = useSpeedDial();
   const [loading, setLoading] = useState(false);
   const theme = useTheme();
   const isSm = useMediaQuery(theme.breakpoints.down("sm"));
   const { enqueueSnackbar } = useSnackbar();
 
   const handleTicketUploaded = (newTicket) => {
-    onCloseUploadTicket();
     router.push(`/space/${initialData?.id}/ticket/${newTicket.ticket_id}`);
   };
 
@@ -158,316 +113,309 @@ function SpaceDetailPage({
         <meta property="og:type" content="website" />
       </Head>
 
-      <CreateSpaceSpeedDial
-        authHeader={authHeader}
+      <AppLayout
         spaceId={initialData?.id}
-        onSpaceCreated={() => router.push("/home")}
+        authHeader={authHeader}
         onTicketUploaded={handleTicketUploaded}
-      />
-
-      <Box
-        sx={{
-          px: 1,
-          pt: 6,
-          pb: 0,
-        }}
       >
-        <Container>
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            spacing={2}
-            alignItems={{ xs: "flex-start", sm: "center" }}
-            justifyContent="space-between"
-          >
-            <Stack spacing={1}>
-              <Stack direction="row" spacing={2} alignItems="center" justifyContent={'center'}>
-                <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} alignItems='center'>
-                  <Link color="primary" href="/home" component={NextLink}>
+        <Box
+          sx={{
+            px: 1,
+            pt: { xs: 3, md: 6 },
+            pb: 0,
+          }}
+        >
+          <Container>
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={2}
+              alignItems={{ xs: "flex-start", sm: "center" }}
+              justifyContent="space-between"
+            >
+              <Stack spacing={1}>
+                <Stack direction="row" spacing={2} alignItems="center" justifyContent={'center'}>
+                  <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} alignItems='center'>
+                    <Link color="primary" href="/home" component={NextLink}>
+                      <Typography variant="h5" sx={{ color: 'text.primary' }}>
+                        Inicio
+                      </Typography>
+                    </Link>
                     <Typography variant="h5" sx={{ color: 'text.primary' }}>
-                      Inicio
+                      {initialData?.name}
                     </Typography>
-                  </Link>
-                  <Typography variant="h5" sx={{ color: 'text.primary' }}>
-                    {initialData?.name}
-                  </Typography>
-                </Breadcrumbs>
-                <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5}>
-                  <Chip
-                    size="small"
-                    color="primary"
-                    label={initialData?.currency}
-                  />
-                  <IconButton size="small" color="primary">
-                    <EditIcon fontSize="small" />
-                  </IconButton>
+                  </Breadcrumbs>
+                  <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5}>
+                    <Chip
+                      size="small"
+                      color="primary"
+                      label={initialData?.currency}
+                    />
+                    <IconButton size="small" color="primary">
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                  </Stack>
                 </Stack>
-              </Stack>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <AvatarGroupTight members={initialData?.members} size="medium" />
-                <Typography variant="body2" color="text.secondary">
-                  {initialData?.members_count} miembros ·{" "}
-                  {initialData?.tickets_count} tickets
-                </Typography>
-              </Stack>
-              <Typography
-                variant={"body1"}
-                sx={{
-                  color: "#777",
-                  fontWeight: "500",
-                }}
-              >
-                {initialData?.description}
-              </Typography>
-            </Stack>
-            <Stack direction="row" spacing={1}>
-              <Button variant="soft" startIcon={<Paid />}>
-                Saldar cuentas
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<PersonAddAlt1 />}
-                onClick={() => setShareOpen(true)}
-              >
-                Compartir
-              </Button>
-              <ShareDialog
-                open={shareOpen}
-                onClose={() => setShareOpen(false)}
-                shareUrl={
-                  typeof window !== "undefined"
-                    ? `${window.location.href}/join`
-                    : "/"
-                }
-              />
-            </Stack>
-          </Stack>
-
-          <Tabs
-            value={tab}
-            onChange={(_, v) => setTab(v)}
-            scrollButtons
-            allowScrollButtonsMobile
-            variant={isSm ? "fullWidth" : "standard"}
-            sx={{ height: "30px", mt: 2 }}
-          >
-            <Tab iconPosition="start" label="Tickets" />
-            <Tab iconPosition="start" label="Balance" />
-            <Tab iconPosition="start" label="Miembros" />
-          </Tabs>
-          
-          <Divider />
-        </Container>
-      </Box>
-
-      <Container sx={{ py: 3, mt: 3, minHeight: "62vh" }}>
-        {/* Tab 1 - Tickets */}
-        {tab === 0 && (
-          <>
-            {loading && <LoadingSection />}
-            {!loading && tickets.length === 0 && <EmptySection />}
-            {!loading && tickets.length > 0 && (
-              <Grid container spacing={{ xs: 2, md: 3 }} sx={{ pb: 10 }}>
-                {tickets?.length > 0 &&
-                  tickets.map((t) => (
-                    <Grid size={{ xs: 6, sm: 4, md: 3 }} key={t.id}>
-                      <TicketCard
-                        ticket={t}
-                        onSelect={(tk) =>
-                          router.push(
-                            `/space/${initialData?.id}/ticket/${tk.id}`
-                          )
-                        }
-                        onDeleteCompleted={handleDeleteCompleted}
-                      />
-                    </Grid>
-                  ))}
-              </Grid>
-            )}
-          </>
-        )}
-
-        {/* Tab 2 - Balance */}
-        {tab === 1 && (
-          <Grid container spacing={2}>
-            {/**
-                  <Grid item size={{ xs:12, sm: 6, md: 4 }}>
-                    <SummaryStat icon={<Paid />} label="Total gastado" value={fmtMoney(initialData?.total_amount)} />
-                  </Grid>
-                  <Grid item size={{ xs:12, sm: 6, md: 4 }}>
-                    <SummaryStat icon={<ReceiptLong />} label="Tickets" value={initialData?.tickets_count} hint="2 pendientes de confirmar" color="warning.main" />
-                  </Grid>
-                  <Grid item size={{ xs:12, sm: 6, md: 4 }}>
-                    <SummaryStat icon={<CheckCircle />} label="Asignación" value="78%" hint="Ítems asignados" color="success.main" />
-                  </Grid>
-              */}
-
-            {/* Renderizar deudas */}
-            {initialEventBalance.map((debt, index) => (
-              <Grid size={{ xs: 12 }} key={index}>
-                <Card
-                  variant="outlined"
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <AvatarGroupTight members={initialData?.members} size="medium" />
+                  <Typography variant="body2" color="text.secondary">
+                    {initialData?.members_count} miembros ·{" "}
+                    {initialData?.tickets_count} tickets
+                  </Typography>
+                </Stack>
+                <Typography
+                  variant={"body1"}
                   sx={{
-                    borderRadius: 1,
-                    p: 1,
+                    color: "#777",
+                    fontWeight: "500",
                   }}
                 >
-                  <CardContent>
-                    <Stack
-                      direction="row"
-                      spacing={2}
-                      alignItems="center"
-                      justifyContent="space-between"
-                    >
-                      {/* Avatar + User */}
-                      <Stack direction="row" spacing={2} alignItems="center">
-                        <Avatar
-                          src={debt.member.profile_image_url}
-                          alt={debt.member.username}
-                          sx={{
-                            width: 48,
-                            height: 48,
-                            fontWeight: 700,
-                          }}
-                        >
-                          {debt.member.username?.[0]?.toUpperCase()}
-                        </Avatar>
-                        <Box>
-                          <Typography variant="subtitle1" fontWeight={700}>
-                            {debt.member.username}
-                          </Typography>
-                          <Typography
-                            variant="caption"
-                            sx={{ color: "text.secondary" }}
+                  {initialData?.description}
+                </Typography>
+              </Stack>
+              <Stack direction="row" spacing={1}>
+                <Button variant="soft" startIcon={<Paid />}>
+                  Saldar cuentas
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<PersonAddAlt1 />}
+                  onClick={() => setShareOpen(true)}
+                >
+                  Compartir
+                </Button>
+                <ShareDialog
+                  open={shareOpen}
+                  onClose={() => setShareOpen(false)}
+                  shareUrl={
+                    typeof window !== "undefined"
+                      ? `${window.location.href}/join`
+                      : "/"
+                  }
+                />
+              </Stack>
+            </Stack>
+
+            <Tabs
+              value={tab}
+              onChange={(_, v) => setTab(v)}
+              scrollButtons
+              allowScrollButtonsMobile
+              variant={isSm ? "fullWidth" : "standard"}
+              sx={{ height: "30px", mt: 2 }}
+            >
+              <Tab iconPosition="start" label="Tickets" />
+              <Tab iconPosition="start" label="Balance" />
+              <Tab iconPosition="start" label="Miembros" />
+            </Tabs>
+            
+            <Divider />
+          </Container>
+        </Box>
+        <Container sx={{ py: 3, mt: 3, minHeight: "62vh" }}>
+          {/* Tab 1 - Tickets */}
+          {tab === 0 && (
+            <>
+              {loading && <LoadingSection />}
+              {!loading && tickets.length === 0 && <EmptySection />}
+              {!loading && tickets.length > 0 && (
+                <Grid container spacing={{ xs: 2, md: 3 }} sx={{ pb: 10 }}>
+                  {tickets?.length > 0 &&
+                    tickets.map((t) => (
+                      <Grid size={{ xs: 6, sm: 4, md: 3 }} key={t.id}>
+                        <TicketCard
+                          ticket={t}
+                          onSelect={(tk) =>
+                            router.push(
+                              `/space/${initialData?.id}/ticket/${tk.id}`
+                            )
+                          }
+                          onDeleteCompleted={handleDeleteCompleted}
+                        />
+                      </Grid>
+                    ))}
+                </Grid>
+              )}
+            </>
+          )}
+
+          {/* Tab 2 - Balance */}
+          {tab === 1 && (
+            <Grid container spacing={2}>
+              {/**
+                    <Grid item size={{ xs:12, sm: 6, md: 4 }}>
+                      <SummaryStat icon={<Paid />} label="Total gastado" value={fmtMoney(initialData?.total_amount)} />
+                    </Grid>
+                    <Grid item size={{ xs:12, sm: 6, md: 4 }}>
+                      <SummaryStat icon={<ReceiptLong />} label="Tickets" value={initialData?.tickets_count} hint="2 pendientes de confirmar" color="warning.main" />
+                    </Grid>
+                    <Grid item size={{ xs:12, sm: 6, md: 4 }}>
+                      <SummaryStat icon={<CheckCircle />} label="Asignación" value="78%" hint="Ítems asignados" color="success.main" />
+                    </Grid>
+                */}
+
+              {/* Renderizar deudas */}
+              {initialEventBalance.map((debt, index) => (
+                <Grid size={{ xs: 12 }} key={index}>
+                  <Card
+                    variant="outlined"
+                    sx={{
+                      borderRadius: 1,
+                      p: 1,
+                    }}
+                  >
+                    <CardContent>
+                      <Stack
+                        direction="row"
+                        spacing={2}
+                        alignItems="center"
+                        justifyContent="space-between"
+                      >
+                        {/* Avatar + User */}
+                        <Stack direction="row" spacing={2} alignItems="center">
+                          <Avatar
+                            src={debt.member.profile_image_url}
+                            alt={debt.member.username}
+                            sx={{
+                              width: 48,
+                              height: 48,
+                              fontWeight: 700,
+                            }}
                           >
-                            Balance general
+                            {debt.member.username?.[0]?.toUpperCase()}
+                          </Avatar>
+                          <Box>
+                            <Typography variant="subtitle1" fontWeight={700}>
+                              {debt.member.username}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              sx={{ color: "text.secondary" }}
+                            >
+                              Balance general
+                            </Typography>
+                          </Box>
+                        </Stack>
+
+                        {/* Balance principal */}
+                        <Box textAlign="right">
+                          <Typography
+                            variant="h6"
+                            fontWeight={800}
+                            sx={{
+                              color:
+                                parseFloat(debt.balance) >= 0
+                                  ? "success.main"
+                                  : "error.main",
+                            }}
+                          >
+                            {fmtMoney(debt.balance)}
                           </Typography>
+                          <Stack direction="row" spacing={1} mt={0.5}>
+                            <Chip
+                              size="small"
+                              label={`+ ${fmtMoney(debt.owed_to_me)}`}
+                              sx={{
+                                bgcolor: "success.light",
+                                color: "success.dark",
+                                fontWeight: 600,
+                              }}
+                            />
+                            <Chip
+                              size="small"
+                              label={`- ${fmtMoney(debt.i_owe)}`}
+                              sx={{
+                                bgcolor: "error.light",
+                                color: "error.dark",
+                                fontWeight: 600,
+                              }}
+                            />
+                          </Stack>
                         </Box>
                       </Stack>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          )}
 
-                      {/* Balance principal */}
-                      <Box textAlign="right">
-                        <Typography
-                          variant="h6"
-                          fontWeight={800}
-                          sx={{
-                            color:
-                              parseFloat(debt.balance) >= 0
-                                ? "success.main"
-                                : "error.main",
-                          }}
-                        >
-                          {fmtMoney(debt.balance)}
-                        </Typography>
-                        <Stack direction="row" spacing={1} mt={0.5}>
-                          <Chip
-                            size="small"
-                            label={`+ ${fmtMoney(debt.owed_to_me)}`}
-                            sx={{
-                              bgcolor: "success.light",
-                              color: "success.dark",
-                              fontWeight: 600,
-                            }}
-                          />
-                          <Chip
-                            size="small"
-                            label={`- ${fmtMoney(debt.i_owe)}`}
-                            sx={{
-                              bgcolor: "error.light",
-                              color: "error.dark",
-                              fontWeight: 600,
-                            }}
-                          />
-                        </Stack>
-                      </Box>
-                    </Stack>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        )}
-
-        {/* Tab 3 - Miembros */}
-        {tab === 2 && (
-          <Card variant="outlined">
-            <CardHeader
-              title="Miembros"
-              action={
-                <Button variant="outlined" startIcon={<PersonAddAlt1 />}>
-                  Invitar
-                </Button>
-              }
-            />
-            <CardContent>
-              <Grid container spacing={2}>
-                {initialData?.members?.map((m) => (
-                  <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={m.id}>
-                    <Card
-                      variant="outlined"
-                      onClick={() => router.push(`/profile/${m.id}`)}
-                      sx={{ cursor: "pointer", "&:hover": { boxShadow: 4 } }}
-                    >
-                      <CardContent>
-                        <Stack
-                          direction="row"
-                          spacing={2}
-                          alignItems="center"
-                          justifyContent="space-between"
-                        >
+          {/* Tab 3 - Miembros */}
+          {tab === 2 && (
+            <Card variant="outlined" >
+              <CardHeader
+                title="Miembros"
+              />
+              <CardContent>
+                <Grid container spacing={2}>
+                  {initialData?.members?.map((m) => (
+                    <Grid size={{ xs: 12, sm: 6, md: 4 }} key={m.id}>
+                      <Card
+                        variant="outlined"
+                        onClick={() => router.push(`/profile/${m.id}`)}
+                        sx={{ cursor: "pointer", "&:hover": { boxShadow: 4 } }}
+                      >
+                        <CardContent>
                           <Stack
                             direction="row"
-                            spacing={1.5}
+                            spacing={2}
                             alignItems="center"
+                            justifyContent="space-between"
                           >
-                            <Avatar
-                              src={m.profile_picture_url}
-                              alt={m.username}
-                            />
-                            <Box>
-                              <Typography fontWeight={700}>
-                                {m.username}
-                              </Typography>
-                              <Typography
-                                variant="caption"
-                                color="text.secondary"
-                              >
-                                Miembro
-                              </Typography>
-                            </Box>
+                            <Stack
+                              direction="row"
+                              spacing={1.5}
+                              alignItems="center"
+                            >
+                              <Avatar
+                                src={m.profile_image_url}
+                                alt={m.username}
+                              />
+                              <Box>
+                                <Typography fontWeight={700}>
+                                  {m.username}
+                                </Typography>
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                >
+                                  Miembro
+                                </Typography>
+                              </Box>
+                            </Stack>
                           </Stack>
-                        </Stack>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
-            </CardContent>
-          </Card>
-        )}
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              </CardContent>
+            </Card>
+          )}
 
-        {/* Tab 4 - Actividad */}
-        {tab === 3 && (
-          <Card variant="outlined">
-            <CardHeader title="Actividad" />
-            <CardContent>
-              <List>
-                <ListItem>
-                  <ListItemText
-                    primary="Alex subió un ticket (Taquería El Güero)"
-                    secondary="Hace 2 horas"
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Maggie asignó 3 ítems"
-                    secondary="Hace 1 hora"
-                  />
-                </ListItem>
-              </List>
-            </CardContent>
-          </Card>
-        )}
-      </Container>
+          {/* Tab 4 - Actividad */}
+          {tab === 3 && (
+            <Card variant="outlined">
+              <CardHeader title="Actividad" />
+              <CardContent>
+                <List>
+                  <ListItem>
+                    <ListItemText
+                      primary="Alex subió un ticket (Taquería El Güero)"
+                      secondary="Hace 2 horas"
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText
+                      primary="Maggie asignó 3 ítems"
+                      secondary="Hace 1 hora"
+                    />
+                  </ListItem>
+                </List>
+              </CardContent>
+            </Card>
+          )}
+        </Container>
+      </AppLayout>
     </>
   );
 }

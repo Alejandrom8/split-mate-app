@@ -6,20 +6,10 @@ import SpeedDialIcon from "@mui/material/SpeedDialIcon";
 import AddIcon from "@mui/icons-material/Add";
 import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import CreateSpaceModal from "@/components/App/CreateSpaceModal";
 import {useSpeedDial} from "@/context/SpeedDialContext";
-import UploadTicketModal from "@/components/App/UploadTicketModal";
 
-export default function CreateSpeedDial({
-     authHeader,
-     spaceId = null,
-     onSpaceCreated,
-     onTicketUploaded,
-}) {
-  const {
-    openCreateSpace, onOpenCreateSpace, onCloseCreateSpace,
-    openUploadTicket, onOpenUploadTicket, onCloseUploadTicket,
-  } = useSpeedDial();
+export default function CreateSpeedDial() {
+  const { onOpenCreateSpace, onOpenUploadTicket } = useSpeedDial();
 
   return (
     <Box
@@ -56,18 +46,6 @@ export default function CreateSpeedDial({
           onClick={onOpenUploadTicket}
         />
       </SpeedDial>
-      <CreateSpaceModal
-        open={openCreateSpace}
-        onClose={onCloseCreateSpace}
-        onCreated={onSpaceCreated}
-      />
-      <UploadTicketModal
-        _authHeader={authHeader}
-        _spaceId={spaceId}
-        open={openUploadTicket}
-        onClose={onCloseUploadTicket}
-        onCreated={onTicketUploaded}
-      />
     </Box>
   );
 }

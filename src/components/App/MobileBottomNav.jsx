@@ -17,14 +17,17 @@ import AddIcon from '@mui/icons-material/Add';
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
 import {useRouter} from "next/router";
+import {useSpeedDial} from "@/context/SpeedDialContext";
 
-export default function MobileBottomNavNotched({
-                                                 onCreateSpace,
-                                                 onUploadTicket,
-                                               }) {
+export default function MobileBottomNavNotched() {
   const router = useRouter();
   const pathname = router.pathname;
   const theme = useTheme();
+
+  const {
+    openCreateSpace, onOpenCreateSpace, onCloseCreateSpace,
+    openUploadTicket, onOpenUploadTicket, onCloseUploadTicket,
+  } = useSpeedDial();
 
   const [open, setOpen] = React.useState(false);
   const barRef = React.useRef(null);
@@ -48,8 +51,24 @@ export default function MobileBottomNavNotched({
   const END_DEG   = 65;         // abanico: ángulo final (arriba-der)
 
   const actions = [
-    { key: 'create-space', label: 'Crear espacio', icon: <CreateNewFolderIcon />, onClick: () => { setOpen(false); onCreateSpace?.(); } },
-    { key: 'upload-ticket', label: 'Subir ticket',  icon: <ReceiptLongOutlinedIcon />, onClick: () => { setOpen(false); onUploadTicket?.(); } },
+    {
+      key: 'create-space',
+      label: 'Crear espacio',
+      icon: <CreateNewFolderIcon />,
+      onClick: () => {
+        setOpen(false);
+        onOpenCreateSpace();
+      }
+    },
+    {
+      key: 'upload-ticket',
+      label: 'Subir ticket',
+      icon: <ReceiptLongOutlinedIcon />,
+      onClick: () => {
+        setOpen(false);
+        onOpenUploadTicket();
+      }
+    },
   ];
 
   // Medir ancho del contenedor para centrar el notch

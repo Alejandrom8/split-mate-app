@@ -61,7 +61,7 @@ export default function TicketDropzone({
       <Stack spacing={1} alignItems="center">
         <CloudUploadOutlinedIcon fontSize="large" />
         <Typography variant="body1" color="text.secondary">
-          Sube tus tickets
+          Sube tu ticket
         </Typography>
         <Typography variant="caption" color="text.disabled">
           Arrastra y suelta o haz clic
